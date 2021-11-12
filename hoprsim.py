@@ -1,4 +1,3 @@
-# import hoprsim
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy
@@ -18,8 +17,6 @@ def setupStake(
         maxFundsPerNode=100,
         tokensPerTicket=0.1
     ):
-   
-        
 
     stake = [[0 for i in range(numNodes)] for j in range(numNodes)]
     for x in range(numNodes):
@@ -28,7 +25,7 @@ def setupStake(
 
         # get random number of channels per node
         myChannels = int(numpy.random.rand() * (maxChannelsPerNode - minChannelsPerNode + 1) + minChannelsPerNode)
-       
+
         # This value represents the amount each node stakes in their channel
         # It is computed as the number of funds a node has divided by number of channels they open
         stakePerChannel = myFunds / myChannels
@@ -44,7 +41,7 @@ def setupStake(
                 counterparty = counterparty + 1
             stake[x][counterparty] = stakePerChannel
             stake = [[Decimal(i) for i in j] for j in stake]
-            
+
     return stake
 
 
@@ -57,7 +54,7 @@ def selectChannel(weights, weightIndexToNodeLUT):
         sumWeights += i[1]
         if totalWeight == 0:
            sumWeights = 0
-        else: 
+        else:
             if sumWeights / totalWeight >= rand:
                counterparty = weightIndexToNodeLUT[i[0]]
                #print("selected counterparty: ", counterparty)
@@ -98,7 +95,7 @@ def calcImportance(stake):
 def randomPickWeightedByImportance(importance):
 
     channel = selectChannel(importance, [i for i in range(len(importance))])
-    
+
     return channel
 
 
@@ -231,7 +228,73 @@ def printArray2d(a, format=1):
 
 
 
-def printArray1d(a):
+def printArray1d(a, format=1):
     for row in range(len(a)):
-        print("{:4.1f}".format(a[row]), end = " ")
+        if format == 1:
+            print("{:4.1f}".format(a[row]), end = " ")
+        else:
+            print("{:4.0f}".format(a[row]), end = " ")
+
+    print()
+
+
+
+def runCT(
+    stake,
+    numTests=10,
+    ctNodeBalance=50,
+    payoutPerHop=1,
+    hops=3,
+    balancePerCtChannel=5
+):
+    """
+    starts cover traffic
+
+    Parameters:
+    -----------
+    stake: stake matrix
+    numTests: number of iterations to run (starts with opening channels from CT node)
+    ctNodeBalance: number of tokens on CT node
+    payoutPerHop: number of tokens to be paid out to each node along a selected path
+    hops: number of hops per path
+    balancePerCtChannel: CT node funds each channel with this many tokens (subtracted from ctNodeBalance)
+    """
+    numNodes = len(stake)
+    totalPayout = [0] * numNodes
+    ctPaths = [0] * numTests
+    importance = calcImportance(stake)
+
+    for w in range(numTests):
+        remainingctNodeBalance = ctNodeBalance
+        ctChannel = [0] * numNodes
+        ctChannelBalances, remainingctNodeBalance = openInitialCtChannels(ctNodeBalance, balancePerCtChannel, importance)
+        importanceTmp = list(importance)
+
+        # remove all importance entries for nodes to which CT node has no open channels
+        for i in range(numNodes):
+            if ctChannelBalances[i] == 0 :
+                importanceTmp[i] = 0
+
+        pathIndices = [0] * hops
+        nodePayout = [0] * numNodes
+        for j in range(hops):
+            nextNodeIndex = randomPickWeightedByImportance(importanceTmp)
+            pathIndices[j] = nextNodeIndex
+
+            # reset importance
+            importanceTmp = list(importance)
+
+            # give equal payout 1 HOPR reward to nodes selected in the path
+            nodePayout[nextNodeIndex] += payoutPerHop
+            totalPayout[nextNodeIndex] += payoutPerHop
+
+            # remove importance entries for nodes to which current hop has no open channels
+            # this is used in the path selection for the next hop
+            for i in range(numNodes):
+                if stake[nextNodeIndex][i] == 0 :
+                    importanceTmp[i] = 0
+
+            # store path 
+            ctPaths[w] = pathIndices
+    return totalPayout, ctPaths
 
