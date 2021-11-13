@@ -1,0 +1,86 @@
+h1 {
+  font-family: Electro;
+  text-align: center;
+}
+
+.bg {
+  background-image: url("/static/solar.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  height: 100%;
+}
+
+@font-face {
+  font-family: GrandmasGarden;
+  src: url("/static/Grandma's Garden.ttf");
+}
+
+@font-face {
+  font-family: Electro;
+  src: url("/static/Electromagnetic Lungs.otf");
+}
+
+.txt, .button, .table {
+  font-family: Electro;
+  background: rgba(255, 255, 255, 0);
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.txt, .button {
+  color: rgba(0, 0, 0, 0);
+  animation-name: appear;
+  animation-duration: 0.2s;
+  animation-delay: 0.2s;
+  animation-fill-mode: forwards;
+}
+
+.button {
+  animation: blinking 0.3s ease-in infinite;
+  animation-delay: 0.4s;
+  color: rgba(0, 0, 0, 0);
+  border: 2px solid rgba(0, 0, 0, 0);
+  width: max-content;
+  margin: 0 auto;
+  cursor: pointer;
+}
+
+@keyframes appear {
+  from {}
+  to {
+    background: rgba(255, 255, 255, 0.5);
+    color: rgba(0, 0, 0, 1);
+  }
+}
+
+@keyframes blinking {
+  0% {
+    background: rgba(255, 255, 255, 0.2);
+    color: rgba(0, 0, 0, 0.2);
+    border: 2px solid rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    background: rgba(255, 255, 255, 0.5);
+    color: rgba(0, 0, 0, 1);
+    border: 2px solid rgba(0, 0, 0, 1);
+  }
+  100% {
+    background: rgba(255, 255, 255, 0.2);
+    color: rgba(0, 0, 0, 0.2);
+    border: 2px solid rgba(0, 0, 0, .2);
+  }
+}
+
+.gap {
+  height: 10px;
+}
+
+.table {
+  display: none;
+  width: max-content;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 1);
+}
+

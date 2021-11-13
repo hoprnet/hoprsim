@@ -1,8 +1,67 @@
 <html>
     <head>
-        <title>{{ title }}</title>
+        <title>Solar hop ring</title>
+        <link rel="stylesheet" href="/static/styles.css?b=4">
     </head>
-    <body>
-        <h1>Hello {{ username }}</h1>
+    <body class="bg">
+        <h1>Solar hop ring</h1>
+        <div class="txt" id="introText">
+        The year is 2284. Mankind has successfully defeated diseases, hunger, wars and borders.
+        <div class="gap"></div>
+        Planet earth and the outer autonomous robotic farming colonies on Mars and Titani are one free trade zone. But transportation infrastructure such as the Tungsten tunnels, bridges and space ports are constantly improved by you and your fellow builders of the solar hop ring. Naturally the tourists and merchants travelling them are paying you in little Tungsten cubes - the only form of payment that is accepted accross all moons and planets of the solar system.
+        <div class="gap"></div>
+        You are constantly trying to optimize the connections that start at your transport hub. Tungsten is rare and you know that you have to spend it wisely. Only the routes that pay most make sense to maintain. Otherwise you'd be better off scrapping them and starting a new route to a more profitable hub.
+        <div class="gap"></div>
+        As you have been in the business for the better part of the last century, you observe that especialy the well-paying merchants are preferring the safer and better equipped tunnels and bridges. So the more Tungsten you spend on a route, the more frequently it gets used - and the more you earn.
+        <div class="gap"></div>
+        After careful analysis, you found a metric for which route is how valuable and it depends both on the amount of Tungsten that you spent on it as well as on the available quality of connections from the next hub. It is know as the &chi;&omicron;&pi;&rho; score. Optimizing your &chi;&omicron;&pi;&rho; score is the goal of your 14 hour work week.
+        <div class="gap"></div>
+        Travellers are constantly hopping through the ever evolving network of interplanetary pathways and paying a fortune to those builders who maintain the smartest routes.
+        <div class="gap"></div>
+        Now, wyd?
+        <div class="button" onclick="enterGame();">I am ready to boldly go</div>
+        </div>
+
+        <div id="playerTable" class="table">
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Balance</th>
+            </tr>
+            {% for member in members: %}
+            <tr>
+                <td>{{ member[0] }}</td>
+                <td>{{ member[1] }}</td>
+                <td>{{ member[2] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <div class="button" onclick="addPlayer();">Add new player</div>
+        </div>
+
+        <div id="addPlayerForm" class="table">
+          <form action = "/addPlayer" method = "post">
+            <p>Name:</p>
+            <p><input type="text" name="name" /></p>
+            <p>Balance:</p>
+            <p><input type="number" name="balance" /></p>
+            <p><input type = "submit" value = "submit" class="button"/></p>
+          </form>
+        </div>
+
+        <script src="/static/scripts.js?b=4">
+        </script>
     </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+

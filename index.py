@@ -1,5 +1,5 @@
-from flask import Flask
-from flask import render_template
+from flask import Flask, render_template, request
+
 import mysql.connector
 import secrets
 
@@ -18,24 +18,49 @@ query = "SELECT * FROM users"
 cursor.execute(query)
 results = cursor.fetchall()
 
+print(results)
+print(type(results))
+
 for row in results:
     print(row)
 
-cnx.close()
+# render players in table
+
+# obtain all channels and populate stake matrix from that
+
+# render stake matrix
+
+# make own values in cells updateable, validate on client and server side
+
+# run CT every 10 seconds
+
+# list CT paths and payouts over time
+
+# add "add player" form
+
+#cnx.close()
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path="/static")
 
 @app.route("/")
-#def home():
-#    return "<h1>gm ser, wgmi!</h1>"
-
-@app.route('/index')
+@app.route("/index")
 def index():
-    name = 'Rosalia'
-    return render_template('index.html', title='Welcome', username=name)
+    return render_template("index.html", members=results)
 
-app.run(host='0.0.0.0', port=8080)
+@app.route("/addPlayer", methods = ["POST"])
+def addPlayer():
+    name = request.form["name"]
+    balance = request.form["balance"]
+    print("name: ", name, ", balance: ", balance)
+    sql = "INSERT INTO users (name, balance) VALUES (%s, %s)"
+    values = (name, balance)
+    cursor.execute(sql, values)
+    cnx.commit()
+    # TODO: query again to get members including the newly added player!
+    return render_template("index.html", members=results)
+
+app.run(host="0.0.0.0", port=8080)
 
 #if __name__ == "__main__":
 #    from waitress import serve
