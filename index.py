@@ -3,6 +3,9 @@ from flask import Flask, render_template, request
 import mysql.connector
 import secrets
 # pip install mysql-connector-python
+
+import hoprsim
+
 user = "pythonmgr"
 host = "34.65.51.188"
 database = "hoprsim"
@@ -12,8 +15,39 @@ cnx = mysql.connector.connect(user = user,
                                  database = database)
 
 cursor = cnx.cursor()
+def getNumPlayers(cursor):
+    query = "SELECT MAX(id) FROM hoprsim.users"
+    cursor.execute(query)
+    result = cursor.fetchone()[0]
+    return result
 
+def getPlayers(cursorr):
+    query = "SELECT * FROM users"
+    cursor.execute(query)
+    results = cursor.fetchall()
+    return results
 
+def getChannels(cursor):
+    query = "SELECT * FROM channels"
+    cursor.execute(query)
+    results = cursor.fetchall()
+    return results
+
+def getStakeMatrixFromChannels(numPlayers, channels):
+    stake = [[0 for i in range(numPlayers)] for j in range(numPlayers)]
+    for c in channels:
+        if(stake[c[1]][c[2]] != 0):
+            print("ERROR! found double entry in stake matrix for channel ", c[1], "-", c[2])
+        stake[c[1]][c[2]] = c[3]
+        print(c[0], c[1], c[2], c[3])
+    return stake
+
+print("STARTING")
+numPlayers = getNumPlayers(cursor)
+players = getPlayers(cursor)
+channels = getChannels(cursor)
+stake = getStakeMatrixFromChannels(numPlayers, channels)
+hoprsim.printArray2d(stake, 2)
 # obtain all channels and populate stake matrix from that
 
 # render stake matrix
@@ -33,10 +67,11 @@ app = Flask(__name__, static_url_path="/static")
 @app.route("/")
 @app.route("/index")
 def index():
-    query = "SELECT * FROM users"
-    cursor.execute(query)
-    results = cursor.fetchall()
-    print(results)
+    players = getPlayers(cnx)
+
+    channels = getChannels(cnx)
+    stake = getStakeMatrixFromChannels(channels)
+    importance = hoprsim.calcImportance(stake)
     return render_template("index.html", members=results)
 
 @app.route("/addPlayer", methods = ["POST"])
