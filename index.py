@@ -24,7 +24,16 @@ myCache = gameUtils.gameCache(dbConnection)
 # TODO:
 # run CT every 10 seconds
 # list CT paths and payouts over time
-# OPTIONAL: add "cancel" button during edit, dont make these buttons flash
+#
+# OPTIONAL:
+# add "cancel" button during edit, dont make these buttons flash
+# enforce total stake when increasing channel balance
+# do not always go through landing page animation
+# only landing page button should flash
+# add hover tooltip for stake table
+# add short explanation for stake table
+# add animated user guide for first time user
+
 
 app = Flask(__name__, static_url_path="/static")
 
@@ -51,19 +60,16 @@ def setStake():
     toId = int(request.form["toId"])
     # check if it's insert, update or delete
     if (myCache.stake[fromId][toId] == 0 and stakeAmount != 0):
-        print("INSERTING ", fromId, ", ", toId, " = ", stakeAmount)
         sql = "INSERT INTO channels (fromId, toId, balance) VALUES (%s, %s, %s)"
         values = (fromId, toId, stakeAmount)
         myCache.cursor.execute(sql, values)
         myCache.cnx.commit()
     if (myCache.stake[fromId][toId] != 0 and stakeAmount != 0 and myCache.stake[fromId][toId] != stakeAmount):
-        print("UPDATING ", fromId, ", ", toId, " = ", stakeAmount)
         sql = "UPDATE channels SET balance=%s WHERE fromId=%s AND toId=%s"
         values = (stakeAmount, fromId, toId)
         myCache.cursor.execute(sql, values)
         myCache.cnx.commit()
     if (myCache.stake[fromId][toId] != 0 and stakeAmount == 0):
-        print("DELETING ", fromId, ", ", toId)
         sql = "DELETE FROM channels WHERE fromId=%s AND toId=%s"
         values = (fromId, toId)
         myCache.cursor.execute(sql, values)

@@ -21,7 +21,10 @@ class gameCache:
         query = "SELECT MAX(id) FROM hoprsim.users"
         self.cursor.execute(query)
         result = self.cursor.fetchone()[0]
-        self.numPlayers = int(result)
+        if(result == None):
+            self.numPlayers = 0
+        else:
+            self.numPlayers = int(result)
 
     def updatePlayers(self):
         query = "SELECT * FROM users"
