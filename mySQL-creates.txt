@@ -1,0 +1,31 @@
+CREATE TABLE `channels` (
+  `channelId` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `fromId` int(10) unsigned DEFAULT NULL,
+  `toId` int(10) unsigned DEFAULT NULL,
+  `balance` int(10) unsigned DEFAULT NULL,
+  PRIMARY KEY (`channelId`),
+  UNIQUE KEY `channelId_UNIQUE` (`channelId`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `transactions` (
+  `txId` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `type` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `from` int(10) unsigned DEFAULT NULL,
+  `to` int(10) unsigned DEFAULT NULL,
+  `time` datetime DEFAULT NULL,
+  `amount` int(11) DEFAULT NULL,
+  `prevBalance` int(10) unsigned DEFAULT NULL,
+  `newBalance` int(10) unsigned DEFAULT NULL,
+  PRIMARY KEY (`txId`),
+  UNIQUE KEY `txId_UNIQUE` (`txId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `users` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(45) DEFAULT NULL,
+  `balance` double unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `id_UNIQUE` (`id`),
+  UNIQUE KEY `name_UNIQUE` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+

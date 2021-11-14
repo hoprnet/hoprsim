@@ -1,7 +1,7 @@
 <html>
     <head>
         <title>Solar hop ring</title>
-        <link rel="stylesheet" href="/static/styles.css?b=4">
+        <link rel="stylesheet" href="/static/styles.css?b=6">
     </head>
     <body class="bg">
         <h1>Solar hop ring</h1>
@@ -28,16 +28,50 @@
                 <th>ID</th>
                 <th>Name</th>
                 <th>Balance</th>
+                <th style="padding: 10px;">&chi;&omicron;&pi;&rho; score</th>
+                <th># outgoing connections</th>
             </tr>
             {% for member in members: %}
             <tr>
-                <td>{{ member[0] }}</td>
+                <td style="text-align: right">{{ member[0] }}</td>
                 <td>{{ member[1] }}</td>
-                <td>{{ member[2] }}</td>
+                <td style="text-align: right">{{ member[2] }}</td>
+                <td style="text-align: right">{{ member[3] }}</td>
             </tr>
             {% endfor %}
         </table>
         <div class="button" onclick="addPlayer();">Add new player</div>
+        </div>
+
+        <div id="stakeTable" class="table">
+            <h2>Tungsten invested<br />per connection</h2>
+            <table>
+                <tr>
+                    <th></th>
+                {% for i in range(stake|length): %}
+                    <th style="text-align: right;">{{ i }}</th>
+                {% endfor %}
+                </tr>
+                {% for i in range(stake|length): %}
+                <tr>
+                    <th>{{ i }}</th>
+                    {% for j in range(stake[i]|length): %}
+                    <td>
+                    <div onclick="clickStake()" class="stakeEntry" data-from="{{ i }}" data-to="{{ j }}" id="view-{{ i }}-{{ j }}">{{ stake[i][j] }}</div>
+                    <div id="edit-{{ i }}-{{ j }}" style="display: none">
+                        <form action = "/setStake" method = "post">
+                            <p>Amount:</p>
+                            <p><input type="number" name="stakeAmount" value="{{ stake[i][j] }}"/></p>
+                            <input type="hidden" name="fromId" value="{{ i }}"/>
+                            <input type="hidden" name="toId" value="{{ j }}"/>
+                            <p><input type = "submit" value = "submit" class="button"/></p>
+                        </form>
+                    </div>
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
         </div>
 
         <div id="addPlayerForm" class="table">
@@ -50,7 +84,7 @@
           </form>
         </div>
 
-        <script src="/static/scripts.js?b=4">
+        <script src="/static/scripts.js?b=7">
         </script>
     </body>
 </html>

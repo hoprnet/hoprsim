@@ -4,6 +4,9 @@ import mysql.connector
 import secrets
 # pip install mysql-connector-python
 
+from decimal import *
+import numpy
+
 import hoprsim
 
 user = "pythonmgr"
@@ -39,16 +42,30 @@ def getStakeMatrixFromChannels(numPlayers, channels):
         if(stake[c[1]][c[2]] != 0):
             print("ERROR! found double entry in stake matrix for channel ", c[1], "-", c[2])
         stake[c[1]][c[2]] = c[3]
-        print(c[0], c[1], c[2], c[3])
     return stake
 
-print("STARTING")
+def calcPlayerTable(players, channels, numPlayers):
+    playerTable = []
+    players = getPlayers(cursor)
+    channels = getChannels(cursor)
+    stake = getStakeMatrixFromChannels(numPlayers, channels)
+    importance = hoprsim.calcImportance(stake)
+    importanceList = importance.tolist()
+    for a in range(len(players)):
+        playerList = list(players[a])
+        playerList.append(format(importanceList[a], ".2f"))
+        playerTable.append(playerList)
+    print(playerTable)
+    return playerTable
+
 numPlayers = getNumPlayers(cursor)
 players = getPlayers(cursor)
 channels = getChannels(cursor)
 stake = getStakeMatrixFromChannels(numPlayers, channels)
 hoprsim.printArray2d(stake, 2)
-# obtain all channels and populate stake matrix from that
+importance = hoprsim.calcImportance(stake)
+print(importance)
+playerTable = calcPlayerTable(players, channels, numPlayers)
 
 # render stake matrix
 
@@ -67,18 +84,12 @@ app = Flask(__name__, static_url_path="/static")
 @app.route("/")
 @app.route("/index")
 def index():
-    players = getPlayers(cnx)
-
-    channels = getChannels(cnx)
-    stake = getStakeMatrixFromChannels(channels)
-    importance = hoprsim.calcImportance(stake)
-    return render_template("index.html", members=results)
+    return render_template("index.html", members=playerTable, stake=stake)
 
 @app.route("/addPlayer", methods = ["POST"])
 def addPlayer():
     name = request.form["name"]
     balance = request.form["balance"]
-    print("name: ", name, ", balance: ", balance)
     sql = "INSERT INTO users (name, balance) VALUES (%s, %s)"
     values = (name, balance)
     cursor.execute(sql, values)
@@ -86,9 +97,36 @@ def addPlayer():
     query = "SELECT * FROM users"
     cursor.execute(query)
     results = cursor.fetchall()
-    print(results)
     # TODO: query again to get members including the newly added player!
-    return render_template("index.html", members=results)
+    return render_template("index.html", members=playerTable, stake=stake)
+
+@app.route("/setStake", methods = ["POST"])
+def setStake():
+    stakeAmount = int(request.form["stakeAmount"])
+    fromId = int(request.form["fromId"])
+    toId = int(request.form["toId"])
+    # check if it's insert, update or delete
+    if (stake[fromId][toId] == 0 and stakeAmount != 0):
+        print("INSERTING ", fromId, ", ", toId, " = ", stakeAmount)
+        sql = "INSERT INTO channels (fromId, toId, balance) VALUES (%s, %s, %s)"
+        values = (fromId, toId, stakeAmount)
+        cursor.execute(sql, values)
+        cnx.commit()
+    if (stake[fromId][toId] != 0 and stakeAmount != 0 and stake[fromId][toId] != stakeAmount):
+        print("UPDATING ", fromId, ", ", toId, " = ", stakeAmount)
+        sql = "UPDATE channels SET balance=%s WHERE fromId=%s AND toId=%s"
+        values = (stakeAmount, fromId, toId)
+        cursor.execute(sql, values)
+        cnx.commit()
+    if (stake[fromId][toId] != 0 and stakeAmount == 0):
+        print("DELETING ", fromId, ", ", toId)
+        sql = "DELETE FROM channels WHERE fromId=%s AND toId=%s"
+        values = (fromId, toId)
+        cursor.execute(sql, values)
+        cnx.commit()
+    print("DONE in setStake")
+    # TODO: query again to get members including the newly added player!
+    return render_template("index.html", members=playerTable, stake=stake)
 
 app.run(host="0.0.0.0", port=8080)
 

@@ -84,3 +84,8 @@ h1 {
   color: rgba(0, 0, 0, 1);
 }
 
+.stakeEntry {
+  text-align: right;
+  width: 30px;
+}
+
