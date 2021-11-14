@@ -2,7 +2,7 @@ from flask import Flask, render_template, request
 
 import mysql.connector
 import secrets
-
+# pip install mysql-connector-python
 user = "pythonmgr"
 host = "34.65.51.188"
 database = "hoprsim"
@@ -10,21 +10,9 @@ cnx = mysql.connector.connect(user = user,
                                  password = secrets.password,
                                  host = host,
                                  database = database)
-print(cnx)
 
 cursor = cnx.cursor()
 
-query = "SELECT * FROM users"
-cursor.execute(query)
-results = cursor.fetchall()
-
-print(results)
-print(type(results))
-
-for row in results:
-    print(row)
-
-# render players in table
 
 # obtain all channels and populate stake matrix from that
 
@@ -36,7 +24,6 @@ for row in results:
 
 # list CT paths and payouts over time
 
-# add "add player" form
 
 #cnx.close()
 
@@ -46,6 +33,10 @@ app = Flask(__name__, static_url_path="/static")
 @app.route("/")
 @app.route("/index")
 def index():
+    query = "SELECT * FROM users"
+    cursor.execute(query)
+    results = cursor.fetchall()
+    print(results)
     return render_template("index.html", members=results)
 
 @app.route("/addPlayer", methods = ["POST"])
@@ -57,6 +48,10 @@ def addPlayer():
     values = (name, balance)
     cursor.execute(sql, values)
     cnx.commit()
+    query = "SELECT * FROM users"
+    cursor.execute(query)
+    results = cursor.fetchall()
+    print(results)
     # TODO: query again to get members including the newly added player!
     return render_template("index.html", members=results)
 
