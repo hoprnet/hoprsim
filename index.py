@@ -5,6 +5,9 @@ import secrets
 # pip install mysql-connector-python
 
 from decimal import *
+
+from threading import Timer
+
 import numpy
 
 import hoprsim
@@ -28,12 +31,15 @@ myCache = gameUtils.gameCache(dbConnection)
 # OPTIONAL:
 # add "cancel" button during edit, dont make these buttons flash
 # enforce total stake when increasing channel balance
+# prevent user from staking on themselves (diagonal in stake matrix)
+#
+# NICE TO HAVES:
+# render server-side errors in UI
 # do not always go through landing page animation
 # only landing page button should flash
 # add hover tooltip for stake table
 # add short explanation for stake table
 # add animated user guide for first time user
-
 
 app = Flask(__name__, static_url_path="/static")
 
@@ -51,6 +57,7 @@ def addPlayer():
     myCache.cursor.execute(sql, values)
     myCache.cnx.commit()
     myCache.updateEntireCache()
+    # TODO: also return and render unclaimed earnings matrix
     return render_template("index.html", members=myCache.playerTable, stake=myCache.stake)
 
 @app.route("/setStake", methods = ["POST"])
@@ -58,24 +65,60 @@ def setStake():
     stakeAmount = int(request.form["stakeAmount"])
     fromId = int(request.form["fromId"])
     toId = int(request.form["toId"])
+    balance = myCache.players[fromId-1][2]
+    currentStake = myCache.stake[fromId-1][toId-1]
+
+    if (fromId == toId):
+        print("ERROR: tried to self-stake")
+    elif (currentStake == stakeAmount):
+        print("ERROR: same stake amount as before")
+
     # check if it's insert, update or delete
-    if (myCache.stake[fromId][toId] == 0 and stakeAmount != 0):
-        sql = "INSERT INTO channels (fromId, toId, balance) VALUES (%s, %s, %s)"
-        values = (fromId, toId, stakeAmount)
-        myCache.cursor.execute(sql, values)
-        myCache.cnx.commit()
-    if (myCache.stake[fromId][toId] != 0 and stakeAmount != 0 and myCache.stake[fromId][toId] != stakeAmount):
-        sql = "UPDATE channels SET balance=%s WHERE fromId=%s AND toId=%s"
-        values = (stakeAmount, fromId, toId)
-        myCache.cursor.execute(sql, values)
-        myCache.cnx.commit()
-    if (myCache.stake[fromId][toId] != 0 and stakeAmount == 0):
+    elif (currentStake == 0 and stakeAmount != 0):
+        if (balance < stakeAmount):
+            print("ERROR: insufficient balance")
+        else:
+            sql = "INSERT INTO channels (fromId, toId, balance) VALUES (%s, %s, %s)"
+            values = (fromId, toId, stakeAmount)
+            myCache.cursor.execute(sql, values)
+            myCache.cnx.commit()
+
+            sql = "UPDATE users SET balance=%s WHERE id=%s"
+            values = (int(balance - stakeAmount), fromId)
+            myCache.cursor.execute(sql, values)
+            myCache.cnx.commit()
+            # TODO: queries can be executed in one operation
+
+    elif (currentStake != 0 and stakeAmount != 0 and currentStake != stakeAmount):
+        if (currentStake < stakeAmount and balance + currentStake < stakeAmount):
+            print("ERROR insufficient balance + current stake")
+        else:
+            # reduce their balance
+            sql = "UPDATE users SET balance=%s WHERE id=%s"
+            values = (int(balance + currentStake - stakeAmount), fromId)
+            myCache.cursor.execute(sql, values)
+            myCache.cnx.commit()
+
+            sql = "UPDATE channels SET balance=%s WHERE fromId=%s AND toId=%s"
+            values = (stakeAmount, fromId, toId)
+            myCache.cursor.execute(sql, values)
+            myCache.cnx.commit()
+
+    elif (currentStake != 0 and stakeAmount == 0):
         sql = "DELETE FROM channels WHERE fromId=%s AND toId=%s"
         values = (fromId, toId)
         myCache.cursor.execute(sql, values)
         myCache.cnx.commit()
+
+        sql = "UPDATE users SET balance=%s WHERE id=%s"
+        values = (int(balance + currentStake), fromId)
+        myCache.cursor.execute(sql, values)
+        myCache.cnx.commit()
+
     myCache.updateEntireCache()
     return render_template("index.html", members=myCache.playerTable, stake=myCache.stake)
+
+# TODO: add functionality to claim earnings from a channel which then get added to the players balance
 
 app.run(host="0.0.0.0", port=8080)
 
