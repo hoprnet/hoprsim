@@ -1,7 +1,7 @@
 <html>
     <head>
         <title>Solar hop ring</title>
-        <link rel="stylesheet" href="/static/styles.css?b=6">
+        <link rel="stylesheet" href="/static/styles.css?b=10">
     </head>
     <body class="bg">
         <h1>Solar hop ring</h1>
@@ -57,16 +57,27 @@
                     <th>{{ i+1 }}</th>
                     {% for j in range(stake[i]|length): %}
                     <td>
-                    <div onclick="clickStake()" class="stakeEntry" data-from="{{ i+1 }}" data-to="{{ j+1 }}" id="view-{{ i+1 }}-{{ j+1 }}">{{ stake[i][j] }}</div>
-                    <div id="edit-{{ i+1 }}-{{ j+1 }}" style="display: none">
-                        <form action = "/setStake" method = "post">
-                            <p>Amount:</p>
-                            <p><input type="number" name="stakeAmount" value="{{ stake[i][j] }}"/></p>
-                            <input type="hidden" name="fromId" value="{{ i+1 }}"/>
-                            <input type="hidden" name="toId" value="{{ j+1 }}"/>
-                            <p><input type = "submit" value = "submit" class="button"/></p>
-                        </form>
-                    </div>
+                        <div onclick="clickStake()" class="stakeEntry" data-from="{{ i+1 }}" data-to="{{ j+1 }}" id="view-{{ i+1 }}-{{ j+1 }}">
+                            {{ stake[i][j] }}
+                            <div class="earnings" onclick="clickEarnings()" data-from="{{ i+1 }}" data-to="{{ j+1 }}" id="earnings-{{ i+1 }}-{{ j+1 }}">
+                                (+{{ earnings[i][j] }})
+                            </div>
+                            <div id="claims-{{ i+1 }}-{{ j+1 }}" style="display: none" name="forms">
+                                <form action = "/claimEarnings" method = "post">
+                                    <input type="hidden" name="fromId" value="{{ i+1 }}"/>
+                                    <input type="hidden" name="toId" value="{{ j+1 }}"/>
+                                    <p><input type="submit" value="claim" class="button"/></p>
+                            </div>
+                            <div id="edit-{{ i+1 }}-{{ j+1 }}" style="display: none" name="forms">
+                                <form action = "/setStake" method = "post">
+                                    <p>Amount:</p>
+                                    <p><input type="number" name="stakeAmount" value="{{ stake[i][j] }}"/></p>
+                                    <input type="hidden" name="fromId" value="{{ i+1 }}"/>
+                                    <input type="hidden" name="toId" value="{{ j+1 }}"/>
+                                    <p><input type="submit" value="update" class="button"/></p>
+                                </form>
+                            </div>
+                        </div>
                     </td>
                     {% endfor %}
                 </tr>
@@ -84,7 +95,7 @@
           </form>
         </div>
 
-        <script src="/static/scripts.js?b=7">
+        <script src="/static/scripts.js?b=13">
         </script>
     </body>
 </html>

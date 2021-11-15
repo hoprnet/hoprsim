@@ -44,7 +44,7 @@ app = Flask(__name__, static_url_path="/static")
 @app.route("/")
 @app.route("/index")
 def index():
-    return render_template("index.html", members=myCache.playerTable, stake=myCache.stake)
+    return render_template("index.html", members=myCache.playerTable, stake=myCache.stake, earnings=myCache.earnings)
 
 @app.route("/addPlayer", methods = ["POST"])
 def addPlayer():
@@ -57,7 +57,24 @@ def addPlayer():
     myCache.updateEntireCache()
     myCache.increaseEarningsMatrix()
     # TODO: also return and render unclaimed earnings matrix
-    return render_template("index.html", members=myCache.playerTable, stake=myCache.stake)
+    return index()
+
+@app.route("/claimEarnings", methods = ["POST"])
+def claimEarnings():
+    fromId = int(request.form["fromId"])
+    toId = int(request.form["toId"])
+    earnings = myCache.earnings[fromId-1][toId-1]
+    balance = myCache.players[fromId-1][2]
+    print("earnings: ", earnings)
+    if (earnings == 0):
+        print("ERROR: no earnings to claim")
+    myCache.earnings[fromId-1][toId-1] = 0
+    sql = "UPDATE users SET balance=%s WHERE id=%s"
+    values = (int(balance + earnings), fromId)
+    myCache.cursor.execute(sql, values)
+    myCache.cnx.commit()
+    myCache.updateEntireCache()
+    return index()
 
 @app.route("/setStake", methods = ["POST"])
 def setStake():
@@ -115,7 +132,7 @@ def setStake():
         myCache.cnx.commit()
 
     myCache.updateEntireCache()
-    return render_template("index.html", members=myCache.playerTable, stake=myCache.stake)
+    return index()
 
 # TODO: add functionality to claim earnings from a channel which then get added to the players balance
 
