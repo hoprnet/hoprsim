@@ -30,8 +30,6 @@ myCache = gameUtils.gameCache(dbConnection)
 #
 # OPTIONAL:
 # add "cancel" button during edit, dont make these buttons flash
-# enforce total stake when increasing channel balance
-# prevent user from staking on themselves (diagonal in stake matrix)
 #
 # NICE TO HAVES:
 # render server-side errors in UI
@@ -57,6 +55,7 @@ def addPlayer():
     myCache.cursor.execute(sql, values)
     myCache.cnx.commit()
     myCache.updateEntireCache()
+    myCache.increaseEarningsMatrix()
     # TODO: also return and render unclaimed earnings matrix
     return render_template("index.html", members=myCache.playerTable, stake=myCache.stake)
 

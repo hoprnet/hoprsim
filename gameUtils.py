@@ -27,6 +27,25 @@ class gameCache:
         self.cnx = connection
         self.cursor = self.cnx.cursor()
         self.updateEntireCache()
+        self.initializeEarnings()
+
+    def initializeEarnings(self):
+        self.earnings = [[1 for i in range(self.numPlayers)] for j in range(self.numPlayers)]
+
+    def increaseEarningsMatrix(self):
+        newSize = self.numPlayers
+        previousSize = len(self.earnings)
+        if (newSize < previousSize):
+            print("ERROR: earnings matrix cannot be shrunk!")
+        else:
+            for i in range(newSize):
+                if (i >= previousSize):
+                    self.earnings.append([])
+                for j in range(newSize):
+                    if (i >= previousSize or j >= previousSize):
+                        self.earnings[i].append(0)
+        hoprsim.printArray2d(self.earnings,0)
+
 
     def updateEntireCache(self):
         self.updateNumPlayers()
