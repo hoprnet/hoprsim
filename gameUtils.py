@@ -30,7 +30,7 @@ class gameCache:
         self.initializeEarnings()
 
     def initializeEarnings(self):
-        self.earnings = [[1 for i in range(self.numPlayers)] for j in range(self.numPlayers)]
+        self.earnings = [[0 for i in range(self.numPlayers)] for j in range(self.numPlayers)]
 
     def increaseEarningsMatrix(self):
         newSize = self.numPlayers
@@ -97,4 +97,12 @@ class gameCache:
             playerList.append(format(self.importanceList[a], ".2f"))
             # TODO: also append total staked, total unclaimed earnings, number of channels
             self.playerTable.append(playerList)
+
+    def addPlayer(self, name, balance):
+        sql = "INSERT INTO users (name, balance) VALUES (%s, %s)"
+        values = (name, balance)
+        self.cursor.execute(sql, values)
+        self.cnx.commit()
+        self.updateEntireCache()
+        self.increaseEarningsMatrix()
 

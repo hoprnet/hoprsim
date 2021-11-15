@@ -58,9 +58,13 @@
                     {% for j in range(stake[i]|length): %}
                     <td>
                         <div onclick="clickStake()" class="stakeEntry" data-from="{{ i+1 }}" data-to="{{ j+1 }}" id="view-{{ i+1 }}-{{ j+1 }}">
+                            {% if stake[i][j] != 0 %}
                             {{ stake[i][j] }}
+                            {% endif %}
                             <div class="earnings" onclick="clickEarnings()" data-from="{{ i+1 }}" data-to="{{ j+1 }}" id="earnings-{{ i+1 }}-{{ j+1 }}">
+                                {% if earnings[i][j] != 0%}
                                 (+{{ earnings[i][j] }})
+                                {% endif %}
                             </div>
                             <div id="claims-{{ i+1 }}-{{ j+1 }}" style="display: none" name="forms">
                                 <form action = "/claimEarnings" method = "post">

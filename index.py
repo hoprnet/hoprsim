@@ -11,8 +11,8 @@ from threading import Timer
 import numpy
 
 import hoprsim
-
 import gameUtils
+import ctAgent
 
 user = "pythonmgr"
 host = "34.65.51.188"
@@ -23,6 +23,7 @@ dbConnection = mysql.connector.connect(user = user,
                                  database = database)
 
 myCache = gameUtils.gameCache(dbConnection)
+ct = ctAgent.ctAgent(myCache)
 
 # TODO:
 # run CT every 10 seconds
@@ -50,12 +51,7 @@ def index():
 def addPlayer():
     name = request.form["name"]
     balance = request.form["balance"]
-    sql = "INSERT INTO users (name, balance) VALUES (%s, %s)"
-    values = (name, balance)
-    myCache.cursor.execute(sql, values)
-    myCache.cnx.commit()
-    myCache.updateEntireCache()
-    myCache.increaseEarningsMatrix()
+    gameCache.addPlayer(name, balance)
     # TODO: also return and render unclaimed earnings matrix
     return index()
 
