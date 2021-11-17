@@ -15,7 +15,8 @@ class gameCache:
     importance = []     # importance list in numpy array format
     importanceList = [] # importance in list format
     playerTable = []    # player table with an added column for importance
-    earnings = []       # matrix to indicate which node earned how much from whom
+    earnings = []       # matrix to indicate from whom (first index to make it compatible with stake)
+                        # earned how much from which node (second index)
                         # entry in earnings matrix has to be <= the entry in the stake matrix at the same location
                         # if entry in earnings equals the entry in the same location in the stake matrix, the channel is depleted
                         # entry increases whenever some agent sends packet via that edge
@@ -31,6 +32,9 @@ class gameCache:
 
     def initializeEarnings(self):
         self.earnings = [[0 for i in range(self.numPlayers)] for j in range(self.numPlayers)]
+        for i in range(3):
+            for j in range(4,6):
+                self.earnings[i][j] = i*10+j
 
     def increaseEarningsMatrix(self):
         newSize = self.numPlayers
@@ -105,4 +109,70 @@ class gameCache:
         self.cnx.commit()
         self.updateEntireCache()
         self.increaseEarningsMatrix()
+
+    def updateStake(self, fromId, toId, newStake):
+        balance = self.players[fromId-1][2]
+        currentStake = self.stake[fromId-1][toId-1]
+        print("Updating stake[", fromId, "][", toId, " from ", currentStake, " to ", newStake)
+        print("FROM has a balance of ", balance)
+
+        if (fromId == toId):
+            print("ERROR: tried to self-stake")
+        elif (currentStake == newStake):
+            print("ERROR: same stake amount as before")
+
+        # check if it's insert, update or delete
+        elif (currentStake == 0 and newStake != 0):
+            if (balance < newStake):
+                print("ERROR: insufficient balance")
+            else:
+                sql = "INSERT INTO channels (fromId, toId, balance) VALUES (%s, %s, %s)"
+                values = (fromId, toId, newStake)
+                self.cursor.execute(sql, values)
+                self.cnx.commit()
+
+                sql = "UPDATE users SET balance=%s WHERE id=%s"
+                values = (int(balance - newStake), fromId)
+                self.cursor.execute(sql, values)
+                self.cnx.commit()
+            # TODO: queries can be executed in one operation
+
+        elif (currentStake != 0 and newStake != 0 and currentStake != newStake):
+            if (currentStake < newStake and balance + currentStake < newStake):
+                print("ERROR insufficient balance + current stake")
+            else:
+                # reduce their balance
+                sql = "UPDATE users SET balance=%s WHERE id=%s"
+                values = (int(balance + currentStake - newStake), fromId)
+                self.cursor.execute(sql, values)
+                self.cnx.commit()
+
+                sql = "UPDATE channels SET balance=%s WHERE fromId=%s AND toId=%s"
+                values = (newStake, fromId, toId)
+                self.cursor.execute(sql, values)
+                self.cnx.commit()
+
+        elif (currentStake != 0 and newStake == 0):
+            sql = "DELETE FROM channels WHERE fromId=%s AND toId=%s"
+            values = (fromId, toId)
+            self.cursor.execute(sql, values)
+            self.cnx.commit()
+
+            sql = "UPDATE users SET balance=%s WHERE id=%s"
+            values = (int(balance + currentStake), fromId)
+            self.cursor.execute(sql, values)
+            self.cnx.commit()
+            self.claimEarnings(fromId, toId)
+
+        self.updateEntireCache()
+
+    def claimEarnings(self, fromId, toId):
+        earnings = self.earnings[fromId - 1][toId - 1]
+        balance = self.players[toId - 1][2]
+        self.earnings[fromId - 1][toId - 1] = 0
+        self.stake[fromId - 1][toId - 1] = 0
+        sql = "UPDATE users SET balance=%s WHERE id=%s"
+        values = (int(balance + earnings), toId)
+        self.cursor.execute(sql, values)
+        self.cnx.commit()
 

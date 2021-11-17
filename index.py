@@ -11,7 +11,7 @@ from threading import Timer
 import numpy
 
 import hoprsim
-import gameUtils
+import gameCache
 import ctAgent
 
 user = "pythonmgr"
@@ -22,8 +22,8 @@ dbConnection = mysql.connector.connect(user = user,
                                  host = host,
                                  database = database)
 
-myCache = gameUtils.gameCache(dbConnection)
-ct = ctAgent.ctAgent(myCache)
+myCache = gameCache.gameCache(dbConnection)
+# ct = ctAgent.ctAgent(myCache, 10)
 
 # TODO:
 # run CT every 10 seconds
@@ -51,7 +51,7 @@ def index():
 def addPlayer():
     name = request.form["name"]
     balance = request.form["balance"]
-    gameCache.addPlayer(name, balance)
+    myCache.addPlayer(name, balance)
     # TODO: also return and render unclaimed earnings matrix
     return index()
 
@@ -74,9 +74,11 @@ def claimEarnings():
 
 @app.route("/setStake", methods = ["POST"])
 def setStake():
-    stakeAmount = int(request.form["stakeAmount"])
+    newStake = int(request.form["stakeAmount"])
     fromId = int(request.form["fromId"])
     toId = int(request.form["toId"])
+    myCache.updateStake(fromId, toId, newStake)
+    """
     balance = myCache.players[fromId-1][2]
     currentStake = myCache.stake[fromId-1][toId-1]
 
@@ -128,6 +130,7 @@ def setStake():
         myCache.cnx.commit()
 
     myCache.updateEntireCache()
+    """
     return index()
 
 # TODO: add functionality to claim earnings from a channel which then get added to the players balance

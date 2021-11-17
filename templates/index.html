@@ -59,7 +59,9 @@
                     <td>
                         <div onclick="clickStake()" class="stakeEntry" data-from="{{ i+1 }}" data-to="{{ j+1 }}" id="view-{{ i+1 }}-{{ j+1 }}">
                             {% if stake[i][j] != 0 %}
-                            {{ stake[i][j] }}
+                                {{ stake[i][j] }}
+                            {% else %}
+                                -
                             {% endif %}
                             <div class="earnings" onclick="clickEarnings()" data-from="{{ i+1 }}" data-to="{{ j+1 }}" id="earnings-{{ i+1 }}-{{ j+1 }}">
                                 {% if earnings[i][j] != 0%}
@@ -71,6 +73,7 @@
                                     <input type="hidden" name="fromId" value="{{ i+1 }}"/>
                                     <input type="hidden" name="toId" value="{{ j+1 }}"/>
                                     <p><input type="submit" value="claim" class="button"/></p>
+                                </form>
                             </div>
                             <div id="edit-{{ i+1 }}-{{ j+1 }}" style="display: none" name="forms">
                                 <form action = "/setStake" method = "post">
@@ -99,7 +102,7 @@
           </form>
         </div>
 
-        <script src="/static/scripts.js?b=13">
+        <script src="/static/scripts.js?b=15">
         </script>
     </body>
 </html>

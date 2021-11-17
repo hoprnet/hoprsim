@@ -21,6 +21,8 @@ function clickStake() {
   var elem = event.target;
 	var fromId = elem.getAttribute("data-from");
   var toId = elem.getAttribute("data-to");
+  if (fromId === null)
+    return; // clicked on some form - hack!
   console.log("CLICKED stake! from = " + fromId + ", to = " + toId);
   hideForms(); // minimizes all previously opened dialogs
   document.getElementById("edit-"+fromId+"-"+toId).style.display="unset";

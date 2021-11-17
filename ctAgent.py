@@ -1,41 +1,73 @@
 import hoprsim
 import threading
+import numpy as np
 
 class ctAgent:
-    channelsPerCtNode = 2
-    ctTickDurationSeconds = 10.0
-    hops = 3
-    payoutPerHop = 1;
+
+    # these values are settings which might also be moved to constructor later?
+    tokensPerChannel = 10 # token balance to fund new channels with
+    channelCount = 2 # trying to reach this many outgoing channels (or until out of balance, whatever comes first)
+    ctTickDurationSeconds = 2.0
+    hops = 3 # 3 for routes with 3 intermediate hops
+    payoutPerHop = 1; # number of tokens to be paid to each hop
 
     # ct state
     ctChannelBalances = [] # amounts which the ct node funded towards that channel
     ctChannelRewarded = [] # amount which the node already earned from the respective ctChannelStake,
                            # has to be <= corresponding entry in ctChannelStake
-    ctNodeBalance = 0
+    def __init__(self, cache, ctNodeId):
+        """
+        Constructor
 
-    def __init__(self, cache, balance=20, channelCount=2, tickDuration=5.0):
+        Parameters
+        ----------
+        cache: a cache with latest state as defined in GameCache.py
+        ctNodeId: the ID of the node (as stored in db), that node is not managed by a player but by this agent script
+        """
         # TODO: add CT node as a normal node including stake matrix etc
         print("Initializing ct agent...")
         self.gameCache = cache
-        self.ctNodeBalance = balance
-        self.channelsPerCtNode = channelCount
-        self.ctTickDurationSeconds = tickDuration
-        tokensPerChannel = self.ctNodeBalance / self.channelsPerCtNode
-        self.ctChannelBalances, self.ctNodeBalance = hoprsim.openInitialCtChannels(self.ctNodeBalance, tokensPerChannel, self.gameCache.importance)
-        self.ctChannelRewarded = [0 for i in range(len(self.ctChannelBalances))]
-        print("ct channel balances: ", self.ctChannelBalances)
-        print("ct node balance: ", self.ctNodeBalance)
-        t = threading.Timer(1, self.tick)
-        t.start()
-        print("tick duration: ", self.ctTickDurationSeconds)
-        print("tick function: ", self.tick)
-
-    def tick(self):
-        print("CT tick")
+        self.ctNodeId = ctNodeId - 1 # to transform it from the sql 1-index to the 0-indexed cache
         t = threading.Timer(self.ctTickDurationSeconds, self.tick)
         t.start()
-        importanceTmp = list(self.gameCache.importance)
 
+    def openChannels(self):
+        print("opening channels")
+
+        ctNodeStake = self.gameCache.stake[self.ctNodeId]
+        print("ct stake: ", ctNodeStake)
+        counterPartyEarnings = np.array(self.gameCache.earnings)[:,self.ctNodeId].tolist()
+        print("counterparty earnings: ", counterPartyEarnings)
+
+        channelsToBeClosed = []
+        # check if any channels are at zero balance
+        for i in range(self.gameCache.numPlayers):
+            if (ctNodeStake[i] != 0 and ctNodeStake[i] == counterPartyEarnings[i]):
+                channelsToBeClosed.append(i)
+            elif (ctNodeStake[i] < counterPartyEarnings[i]):
+                print("ERROR! ct node stake should never be bigger than earnings of counterparty")
+
+        print("channels to be closed: ", channelsToBeClosed)
+
+        for c in channelsToBeClosed:
+            self.gameCache.updateStake(self.ctNodeId, c + 1, 0)
+
+        # check how many channels we have open
+        openChannelIds = [i for i, element in enumerate(ctNodeStake) if element!=0]
+        print("CT has ", len(openChannelIds), " open channels at indices ", openChannelIds)
+
+        # if not enough -> open more
+        #if (len(openChannelIds) < self.channelCount):
+
+        emptyChannels = []
+        #for channel in channels:
+
+
+    def sendPacket(self):
+        print("sending packet")
+        return
+        
+        importanceTmp = list(self.gameCache.importance)
         # remove all importance entries for nodes to which CT node has no open channels
         for i in range(self.gameCache.numPlayers):
             if self.ctChannelBalances[i] == 0 :
@@ -71,3 +103,11 @@ class ctAgent:
     # start ct path selection on itertive ticks
     # close channel if out of funds
     # open new channel if we have funds and less channels than limit
+
+    def tick(self):
+        print("CT tick")
+        self.openChannels()
+        self.sendPacket()
+        t = threading.Timer(self.ctTickDurationSeconds, self.tick)
+        t.start()
+
