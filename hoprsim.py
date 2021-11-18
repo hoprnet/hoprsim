@@ -44,8 +44,16 @@ def setupStake(
 
     return stake
 
-
 def selectChannel(weights, weightIndexToNodeLUT):
+    """
+    Randomly selects a counterparty based on weights according to a LUT
+    Returns the node id (or -1 if none could be found)
+
+    Parameters
+    ----------
+    weights: a list of weights to be used for normalizing the random selection
+    weightIndexToNodeLUT: a LUT translating the weights list to node ids
+    """
     rand = numpy.random.rand()
     totalWeight = sum(weights)
     sumWeights = 0
@@ -57,17 +65,8 @@ def selectChannel(weights, weightIndexToNodeLUT):
         else:
             if sumWeights / totalWeight >= rand:
                counterparty = weightIndexToNodeLUT[i[0]]
-               #print("selected counterparty: ", counterparty)
                break;
-    if counterparty == -1:
-        counterparty = weightIndexToNodeLUT[len(weights) - 1]
-        #print("selected last counterparty", counterparty)
     return counterparty
-
-# TODO:
-# 1. calculate importance
-# 2. open a channel given importances
-# 3. open channels until CT node runs out of funds
 
 def calcImportance(stake):
 
@@ -92,10 +91,11 @@ def calcImportance(stake):
 
 
 # pick a random node based on its importance
-def randomPickWeightedByImportance(importance):
+def randomPickWeightedByImportance(importance, excludedNodeIds):
 
+    for i in excludedNodeIds:
+        importance[i] = 0
     channel = selectChannel(importance, [i for i in range(len(importance))])
-
     return channel
 
 

@@ -32,9 +32,10 @@ class gameCache:
 
     def initializeEarnings(self):
         self.earnings = [[0 for i in range(self.numPlayers)] for j in range(self.numPlayers)]
-        for i in range(3):
-            for j in range(4,6):
-                self.earnings[i][j] = i*10+j
+        #for i in range(3):
+        #    for j in range(4,6):
+        #        self.earnings[i][j] = i*10+j
+        #self.earnings[4][8] = 5
 
     def increaseEarningsMatrix(self):
         newSize = self.numPlayers
@@ -48,8 +49,6 @@ class gameCache:
                 for j in range(newSize):
                     if (i >= previousSize or j >= previousSize):
                         self.earnings[i].append(0)
-        hoprsim.printArray2d(self.earnings,0)
-
 
     def updateEntireCache(self):
         self.updateNumPlayers()
@@ -88,7 +87,6 @@ class gameCache:
             if(self.stake[c[1]-1][c[2]-1] != 0):
                 print("ERROR! found double entry in stake matrix for channel ", c[1], "-", c[2])
             self.stake[c[1]-1][c[2]-1] = c[3]
-        hoprsim
 
     def updateImportance(self):
         self.importance = hoprsim.calcImportance(self.stake)
@@ -113,8 +111,6 @@ class gameCache:
     def updateStake(self, fromId, toId, newStake):
         balance = self.players[fromId-1][2]
         currentStake = self.stake[fromId-1][toId-1]
-        print("Updating stake[", fromId, "][", toId, " from ", currentStake, " to ", newStake)
-        print("FROM has a balance of ", balance)
 
         if (fromId == toId):
             print("ERROR: tried to self-stake")
