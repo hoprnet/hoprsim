@@ -26,7 +26,7 @@ h1 {
   font-family: Electro;
   background: rgba(255, 255, 255, 0);
   border-radius: 20px;
-  padding: 20px;
+  padding: 10px;
 }
 
 .txt, .button {
@@ -38,13 +38,16 @@ h1 {
 }
 
 .button {
-  animation: blinking 0.3s ease-in infinite;
-  animation-delay: 0.4s;
   color: rgba(0, 0, 0, 0);
   border: 2px solid rgba(0, 0, 0, 0);
   width: max-content;
   margin: 0 auto;
   cursor: pointer;
+}
+
+.blinking {
+  animation: blinking 0.3s ease-in infinite;
+  animation-delay: 0.4s;
 }
 
 @keyframes appear {

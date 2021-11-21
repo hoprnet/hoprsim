@@ -5,9 +5,9 @@ import numpy as np
 class ctAgent:
 
     # these values are settings which might also be moved to constructor later?
-    tokensPerChannel = 2 # token balance to fund new channels with
+    tokensPerChannel = 10 # token balance to fund new channels with
     channelCount = 3 # trying to reach this many outgoing channels (or until out of balance, whatever comes first)
-    ctTickDurationSeconds = 1.0
+    ctTickDurationSeconds = 10.0
     hops = 3 # 3 for routes with 3 intermediate hops
     payoutPerHop = 1; # number of tokens to be paid to each hop
 

@@ -296,3 +296,40 @@ def runCT(
             ctPaths[w] = pathIndices
     return totalPayout, ctPaths
 
+def prettyNumber(number):
+    divisor = 1
+    prefix = ""
+    decimals = 0
+    if number >= 1e9:
+        divisor = 1e9
+        prefix = "G"
+    elif number >= 1e6:
+        divisor = 1e6
+        prefix = "M"
+    elif number >= 1e3:
+        divisor = 1e3
+        prefix = "k"
+
+    if number < 1e3:
+        decimals = 0
+    elif number >= 1e3 and number < 10e3:
+        decimals = 1
+    elif number >= 10e3 and number < 1e6:
+        decimals = 0
+    elif number >= 1e6 and number < 10e6:
+        decimals = 1
+    elif number >= 10e6 and number < 1e9:
+        decimals = 0
+    elif number >= 1e9 and number < 10e9:
+        decimals = 1
+    prettyNumber = format(number/divisor, "." + str(decimals) + "f") + prefix
+    return prettyNumber
+
+def getPrettyMatrix(uglyMatrix):
+    prettyMatrix = [[prettyNumber(uglyMatrix[j][i]) for i in range(len(uglyMatrix))] for j in range(len(uglyMatrix))]
+    return prettyMatrix
+
+def getPrettyList(uglyList):
+    print("ugly list: ", uglyList)
+    prettyList = [prettyNumber(uglyList[i]) for i in range(len(uglyList))]
+    return prettyList

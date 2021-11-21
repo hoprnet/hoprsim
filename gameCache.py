@@ -96,16 +96,19 @@ class gameCache:
             playerList = list(self.players[a])
 
             # column 3: importance
-            playerList.append(format(self.importanceList[a], ".2f"))
+            playerList.append(hoprsim.prettyNumber(float(self.importanceList[a])))
 
             # column 4: unclaimed earnings
-            playerList.append(sum(self.earnings[a]))
+            playerList.append(hoprsim.prettyNumber(sum(self.earnings[a])))
 
-            # column 5: number of outgoing channels
+            # column 5: total stake
+            playerList.append(hoprsim.prettyNumber(sum(self.stake[a])))
+
+            # column 6: number of outgoing channels
             outgoing = len([i for i in self.stake[a] if i != 0])
             playerList.append(outgoing)
 
-            # column 6: number of incoming channels
+            # column 7: number of incoming channels
             incoming = len([i for i in numpy.array(self.stake)[:,a].tolist() if i != 0])
             playerList.append(incoming)
 

@@ -26,9 +26,8 @@ myCache = gameCache.gameCache(dbConnection)
 ct = ctAgent.ctAgent(myCache, 13)
 
 # TODO:
-#
+# add "new connection" form in player table
 # fix claim & stake UI, should be separate non-transparent overlay with more information and help
-# add short explanation for stake table
 # render stake numbers with `k`, `m`, `b` and fix column width
 # add "cancel" button during edit, dont make these buttons flash
 #
@@ -44,9 +43,13 @@ app = Flask(__name__, static_url_path="/static")
 @app.route("/")
 @app.route("/index")
 def index():
+    myCache.updatePlayerTable()
     return render_template("index.html",
                            members=myCache.playerTable,
                            stake=myCache.stake,
+                           prettyBalance=hoprsim.getPrettyList(list(list(zip(*myCache.playerTable))[2])),
+                           prettyStake=hoprsim.getPrettyMatrix(myCache.stake),
+                           prettyEarnings=hoprsim.getPrettyMatrix(myCache.earnings),
                            earnings=myCache.earnings,
                            )
 
@@ -66,12 +69,35 @@ def claimEarnings():
     print("earnings: ", earnings)
     if (earnings == 0):
         print("ERROR: no earnings to claim")
-    myCache.earnings[fromId-1][toId-1] = 0
-    sql = "UPDATE users SET balance=%s WHERE id=%s"
-    values = (int(balance + earnings), fromId)
-    myCache.cursor.execute(sql, values)
-    myCache.cnx.commit()
-    myCache.updateEntireCache()
+    else:
+        myCache.earnings[fromId-1][toId-1] = 0
+        sql = "UPDATE users SET balance=%s WHERE id=%s"
+        values = (int(balance + earnings), fromId)
+        myCache.cursor.execute(sql, values)
+        myCache.cnx.commit()
+        myCache.updateEntireCache()
+    return index()
+
+@app.route("/claimAllEarnings", methods = ["POST"])
+def claimAllEarnings():
+    fromId = int(request.form["fromId"])
+    allEarnings = myCache.earnings[fromId-1]
+    balance = myCache.players[fromId-1][2]
+    print("all earnings: ", allEarnings)
+    totalEarnings = 0
+    for i in range(len(allEarnings)):
+        earnings = allEarnings[i]
+        if earnings > 0:
+            myCache.earnings[fromId-1][i] = 0
+            totalEarnings += earnings
+    if totalEarnings == 0:
+        print("ERROR: no earnings to claim")
+    else:
+        sql = "UPDATE users SET balance=%s WHERE id=%s"
+        values = (int(balance + totalEarnings), fromId)
+        myCache.cursor.execute(sql, values)
+        myCache.cnx.commit()
+        myCache.updateEntireCache()
     return index()
 
 @app.route("/setStake", methods = ["POST"])

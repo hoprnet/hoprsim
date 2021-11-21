@@ -1,16 +1,16 @@
 <html>
     <head>
         <title>Solar hop ring</title>
-        <link rel="stylesheet" href="/static/styles.css?b=11">
+        <link rel="stylesheet" href="/static/styles.css?b=12">
     </head>
     <body class="bg">
         <h1>Solar hop ring</h1>
         <div class="txt" id="introText">
         The year is 2284. Mankind has successfully defeated diseases, hunger, wars and borders.
         <div class="gap"></div>
-        Planet earth and the outer autonomous robotic farming colonies on Mars and Titani are one free trade zone. But transportation infrastructure such as the Tungsten tunnels, bridges and space ports are constantly improved by you and your fellow builders of the solar hop ring. Naturally the tourists and merchants travelling them are paying you in little Tungsten cubes - the only form of payment that is accepted accross all moons and planets of the solar system.
+        Planet earth and the outer autonomous robotic farming colonies on Mars and Titan are one free trade zone. But transportation infrastructure such as the Tungsten tunnels, bridges and space ports are constantly improved by you and your fellow builders of the solar hop ring. Naturally, the tourists and merchants travelling them are paying you in little Tungsten cubes - the only form of payment that is accepted accross all moons and planets of the solar system.
         <div class="gap"></div>
-        You are constantly trying to optimize the connections that start at your transport hub. Tungsten is rare and you know that you have to spend it wisely. Only the routes that pay most make sense to maintain. Otherwise you'd be better off scrapping them and starting a new route to a more profitable hub.
+        You are always trying to optimize the connections that start at your transport hub. Tungsten is rare and you know that you have to spend it wisely. Only the routes that pay most make sense to maintain. Otherwise you'd be better off scrapping them and starting a new route to a more profitable hub.
         <div class="gap"></div>
         As you have been in the business for the better part of the last century, you observe that especialy the well-paying merchants are preferring the safer and better equipped tunnels and bridges. So the more Tungsten you spend on a route, the more frequently it gets used - and the more you earn.
         <div class="gap"></div>
@@ -19,7 +19,7 @@
         Travellers are constantly hopping through the ever evolving network of interplanetary pathways and paying a fortune to those builders who maintain the smartest routes.
         <div class="gap"></div>
         Now, wyd?
-        <div class="button" onclick="enterGame();">I am ready to boldly go</div>
+        <div class="button blinking" onclick="enterGame();">I am ready to boldly go</div>
         </div>
 
         <div id="playerTable" class="table">
@@ -30,18 +30,27 @@
                 <th>Balance</th>
                 <th style="padding: 10px;">&chi;&omicron;&pi;&rho; score</th>
                 <th>Claimable</th>
+                <th>Invested</th>
                 <th># out</th>
                 <th># in</th>
             </tr>
-            {% for member in members: %}
+            {% for c in range(members|length): %}
             <tr>
-                <td style="text-align: right">{{ member[0] }}</td>
-                <td>{{ member[1] }}</td>
-                <td style="text-align: right">{{ member[2] }}</td>
-                <td style="text-align: right">{{ member[3] }}</td>
-                <td style="text-align: right">{{ member[4] }}</td>
-                <td style="text-align: right">{{ member[5] }}</td>
-                <td style="text-align: right">{{ member[6] }}</td>
+                <td style="text-align: right">{{ members[c][0] }}</td>
+                <td>{{ members[c][1] }}</td>
+                <td style="text-align: right">{{ prettyBalance[c] }}</td>
+                <td style="text-align: right">{{ members[c][3] }}</td>
+                <td style="text-align: right">{{ members[c][4] }}
+                    {% if members[c][4] != "0" %}
+                        <form action = "/claimAllEarnings" method = "post">
+                            <input type="hidden" name="fromId" value="{{ members[c][0] }}"/>
+                            <p><input type="submit" value="claim" class="button"/></p>
+                        </form>
+                    {% endif %}
+                </td>
+                <td style="text-align: right">{{ members[c][5] }}</td>
+                <td style="text-align: right">{{ members[c][6] }}</td>
+                <td style="text-align: right">{{ members[c][7] }}</td>
             </tr>
             {% endfor %}
         </table>
@@ -50,6 +59,12 @@
 
         <div id="stakeTable" class="table">
             <h2>Tungsten invested<br />per connection</h2>
+            <div style="width: 300px;"> 
+            The numbers on the left in the table below indicate who owns how much money.
+            So row 1 shows in big numbers how much money player 1 has invested in connections to other players indicated in the columns.
+            The small numbers in brackets show how much the player in that row has earned but not yet claimed from players indicated in the columns.
+            Click on a cell in the table to modify the investment, click on the earnings to claim the earning onto your balance.
+            </div>
             <table>
                 <tr>
                     <th></th>
@@ -64,13 +79,13 @@
                     <td>
                         <div onclick="clickStake()" class="stakeEntry" data-from="{{ i+1 }}" data-to="{{ j+1 }}" id="view-{{ i+1 }}-{{ j+1 }}">
                             {% if stake[i][j] != 0 %}
-                                {{ stake[i][j] }}
+                                {{ prettyStake[i][j] }}
                             {% else %}
                                 -
                             {% endif %}
                             <div class="earnings" onclick="clickEarnings()" data-from="{{ i+1 }}" data-to="{{ j+1 }}" id="earnings-{{ i+1 }}-{{ j+1 }}">
                                 {% if earnings[i][j] != 0%}
-                                (+{{ earnings[i][j] }})
+                                (+{{ prettyEarnings[i][j] }})
                                 {% endif %}
                             </div>
                             <div id="claims-{{ i+1 }}-{{ j+1 }}" style="display: none" name="forms">
