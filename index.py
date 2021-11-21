@@ -27,7 +27,9 @@ ct = ctAgent.ctAgent(myCache, 13)
 
 # TODO:
 #
-# OPTIONAL:
+# fix claim & stake UI, should be separate non-transparent overlay with more information and help
+# add short explanation for stake table
+# render stake numbers with `k`, `m`, `b` and fix column width
 # add "cancel" button during edit, dont make these buttons flash
 #
 # NICE TO HAVES:
@@ -35,7 +37,6 @@ ct = ctAgent.ctAgent(myCache, 13)
 # do not always go through landing page animation
 # only landing page button should flash
 # add hover tooltip for stake table
-# add short explanation for stake table
 # add animated user guide for first time user
 
 app = Flask(__name__, static_url_path="/static")
@@ -43,14 +44,17 @@ app = Flask(__name__, static_url_path="/static")
 @app.route("/")
 @app.route("/index")
 def index():
-    return render_template("index.html", members=myCache.playerTable, stake=myCache.stake, earnings=myCache.earnings)
+    return render_template("index.html",
+                           members=myCache.playerTable,
+                           stake=myCache.stake,
+                           earnings=myCache.earnings,
+                           )
 
 @app.route("/addPlayer", methods = ["POST"])
 def addPlayer():
     name = request.form["name"]
     balance = request.form["balance"]
     myCache.addPlayer(name, balance)
-    # TODO: also return and render unclaimed earnings matrix
     return index()
 
 @app.route("/claimEarnings", methods = ["POST"])

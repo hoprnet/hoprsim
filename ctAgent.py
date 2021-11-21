@@ -7,7 +7,7 @@ class ctAgent:
     # these values are settings which might also be moved to constructor later?
     tokensPerChannel = 2 # token balance to fund new channels with
     channelCount = 3 # trying to reach this many outgoing channels (or until out of balance, whatever comes first)
-    ctTickDurationSeconds = 2.0
+    ctTickDurationSeconds = 1.0
     hops = 3 # 3 for routes with 3 intermediate hops
     payoutPerHop = 1; # number of tokens to be paid to each hop
 
@@ -108,11 +108,18 @@ class ctAgent:
                 break # stop looking for path if no next node could be found
             pathIndices.append(nextNodeIndex)
 
+            # TODO 2: instead of doing a payout right away, first construct the full path
+            #       and only if we find a path of length 3 hops, do the payout
+
+            # TODO 3: when increasing the earnings, we should check which channels are still
+            #       sufficiently funded for these earnings
+            #       if a channel stake is too low, the previous node retains all down-stream earnings
+
             # give equal payout 1 HOPR reward to nodes selected in the path
             nodePayout[nextNodeIndex] += self.payoutPerHop
             self.gameCache.earnings[nextNodeIndex][pathIndices[-2]] += self.payoutPerHop
 
-            # TODO: in reality the CT node does not know a node's earnings
+            # TODO 1: in reality the CT node does not know a node's earnings
             #       and it would construct the path regardless
             #       in that case the node upstream of the out-of-funds node
             #       would end up with the additional remaining balance to be forwarded

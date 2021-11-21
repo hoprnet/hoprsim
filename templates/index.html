@@ -29,7 +29,9 @@
                 <th>Name</th>
                 <th>Balance</th>
                 <th style="padding: 10px;">&chi;&omicron;&pi;&rho; score</th>
-                <th># outgoing connections</th>
+                <th>Claimable</th>
+                <th># out</th>
+                <th># in</th>
             </tr>
             {% for member in members: %}
             <tr>
@@ -37,6 +39,9 @@
                 <td>{{ member[1] }}</td>
                 <td style="text-align: right">{{ member[2] }}</td>
                 <td style="text-align: right">{{ member[3] }}</td>
+                <td style="text-align: right">{{ member[4] }}</td>
+                <td style="text-align: right">{{ member[5] }}</td>
+                <td style="text-align: right">{{ member[6] }}</td>
             </tr>
             {% endfor %}
         </table>

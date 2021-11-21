@@ -1,5 +1,6 @@
 import mysql.connector
 import hoprsim
+import numpy
 
 class gameCache:
     # on start, all functions are called directly to initialize global objects
@@ -27,21 +28,17 @@ class gameCache:
     def __init__(self, connection):
         self.cnx = connection
         self.cursor = self.cnx.cursor()
+        self.numPlayers = 0
+        self.earnings = []
         self.updateEntireCache()
-        self.initializeEarnings()
-
-    def initializeEarnings(self):
-        self.earnings = [[0 for i in range(self.numPlayers)] for j in range(self.numPlayers)]
-        #for i in range(3):
-        #    for j in range(4,6):
-        #        self.earnings[i][j] = i*10+j
-        #self.earnings[4][8] = 5
 
     def increaseEarningsMatrix(self):
         newSize = self.numPlayers
         previousSize = len(self.earnings)
         if (newSize < previousSize):
             print("ERROR: earnings matrix cannot be shrunk!")
+        elif newSize == previousSize:
+            return
         else:
             for i in range(newSize):
                 if (i >= previousSize):
@@ -66,7 +63,7 @@ class gameCache:
             self.numPlayers = 0
         else:
             self.numPlayers = int(result)
-        # TODO: if number decreases -> error, if number increases -> increase earnings matrix
+            self.increaseEarningsMatrix()
 
     def updatePlayers(self):
         query = "SELECT * FROM users"
@@ -95,9 +92,23 @@ class gameCache:
     def updatePlayerTable(self):
         self.playerTable = []
         for a in range(len(self.players)):
+            # columns 0, 1, 2 from db: id, name, balance
             playerList = list(self.players[a])
+
+            # column 3: importance
             playerList.append(format(self.importanceList[a], ".2f"))
-            # TODO: also append total staked, total unclaimed earnings, number of channels
+
+            # column 4: unclaimed earnings
+            playerList.append(sum(self.earnings[a]))
+
+            # column 5: number of outgoing channels
+            outgoing = len([i for i in self.stake[a] if i != 0])
+            playerList.append(outgoing)
+
+            # column 6: number of incoming channels
+            incoming = len([i for i in numpy.array(self.stake)[:,a].tolist() if i != 0])
+            playerList.append(incoming)
+
             self.playerTable.append(playerList)
 
     def addPlayer(self, name, balance):
