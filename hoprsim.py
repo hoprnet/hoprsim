@@ -91,10 +91,8 @@ def calcImportance(stake):
 
 
 # pick a random node based on its importance
-def randomPickWeightedByImportance(importance, excludedNodeIds):
+def randomPickWeightedByImportance(importance):
 
-    for i in excludedNodeIds:
-        importance[i] = 0
     channel = selectChannel(importance, [i for i in range(len(importance))])
     return channel
 

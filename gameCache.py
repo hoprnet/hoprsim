@@ -108,67 +108,119 @@ class gameCache:
         self.updateEntireCache()
         self.increaseEarningsMatrix()
 
+    """
+    if new stake is smaller than counterparty earnings, this function will claim the earnings
+    """
     def updateStake(self, fromId, toId, newStake):
+        self.claimEarnings(fromId, toId)
+        self.claimEarnings(toId, fromId)
         balance = self.players[fromId-1][2]
         currentStake = self.stake[fromId-1][toId-1]
+        counterpartyEarnings = self.earnings[toId - 1][fromId - 1]
 
         if (fromId == toId):
             print("ERROR: tried to self-stake")
-        elif (currentStake == newStake):
+            return
+        if (currentStake == newStake):
             print("ERROR: same stake amount as before")
+            return
+        if (currentStake < counterpartyEarnings):
+            promt("ERROR: stake less than counterparty earnings, cheata!")
+            return
 
         # check if it's insert, update or delete
         elif (currentStake == 0 and newStake != 0):
             if (balance < newStake):
                 print("ERROR: insufficient balance")
-            else:
-                sql = "INSERT INTO channels (fromId, toId, balance) VALUES (%s, %s, %s)"
-                values = (fromId, toId, newStake)
-                self.cursor.execute(sql, values)
-                self.cnx.commit()
+                return
+            print("adding new channel from ", fromId, " to ", toId, " = ", newStake)
+            sql = "INSERT INTO channels (fromId, toId, balance) VALUES (%s, %s, %s)"
+            values = (fromId, toId, newStake)
+            self.cursor.execute(sql, values)
+            self.cnx.commit()
 
-                sql = "UPDATE users SET balance=%s WHERE id=%s"
-                values = (int(balance - newStake), fromId)
-                self.cursor.execute(sql, values)
-                self.cnx.commit()
+            newBalance = int(balance - newStake)
+            print("setting user ", fromId, " balance = ", newBalance)
+            sql = "UPDATE users SET balance=%s WHERE id=%s"
+            values = (newBalance, fromId)
+            self.cursor.execute(sql, values)
+            self.cnx.commit()
             # TODO: queries can be executed in one operation
 
         elif (currentStake != 0 and newStake != 0 and currentStake != newStake):
+            # if we increase the stake then we have to make sure to have enough to cover
             if (currentStake < newStake and balance + currentStake < newStake):
-                print("ERROR insufficient balance + current stake")
-            else:
-                # reduce their balance
-                sql = "UPDATE users SET balance=%s WHERE id=%s"
-                values = (int(balance + currentStake - newStake), fromId)
-                self.cursor.execute(sql, values)
-                self.cnx.commit()
+                    print("ERROR insufficient balance + current stake for new stake")
+                    return
 
-                sql = "UPDATE channels SET balance=%s WHERE fromId=%s AND toId=%s"
-                values = (newStake, fromId, toId)
-                self.cursor.execute(sql, values)
-                self.cnx.commit()
+            # reduce their balance
+            newBalance = int(balance + currentStake - newStake)
+            print("reducing balance of user ", fromId, " to ", newBalance)
+            sql = "UPDATE users SET balance=%s WHERE id=%s"
+            values = (newBalance, fromId)
+            self.cursor.execute(sql, values)
+            self.cnx.commit()
+
+            print("updating channel from ", fromId, " to ", toId, " = ", newStake)
+            sql = "UPDATE channels SET balance=%s WHERE fromId=%s AND toId=%s"
+            values = (newStake, fromId, toId)
+            self.cursor.execute(sql, values)
+            self.cnx.commit()
 
         elif (currentStake != 0 and newStake == 0):
+            if (newStake < counterpartyEarnings):
+                self.claimEarnings(toId, fromId)
+            print("deleting channel from ", fromId, " to ", toId)
             sql = "DELETE FROM channels WHERE fromId=%s AND toId=%s"
             values = (fromId, toId)
             self.cursor.execute(sql, values)
             self.cnx.commit()
 
+            newBalance = int(balance + currentStake)
+            print("setting balance of user ", fromId, " to ", newBalance)
             sql = "UPDATE users SET balance=%s WHERE id=%s"
-            values = (int(balance + currentStake), fromId)
+            values = (newBalance, fromId)
             self.cursor.execute(sql, values)
             self.cnx.commit()
-            self.claimEarnings(fromId, toId)
 
         self.updateEntireCache()
 
     def claimEarnings(self, fromId, toId):
         earnings = self.earnings[fromId - 1][toId - 1]
-        balance = self.players[toId - 1][2]
+        counterpartyStake = self.stake[toId - 1][fromId - 1]
+        if (earnings > counterpartyStake):
+            print("ERROR: cannot claim earnings, counter party has too low stake - cheata!")
+            return
+        if earnings == 0:
+            #print("No earnings [", fromId, "][", toId, "]")
+            return
+
+        # set remaining counterparty stake in cache
+        newStake = int(counterpartyStake - earnings)
+        #print("setting stake from ", toId, " to ", fromId, " = ", newStake)
+        self.stake[toId - 1][fromId - 1] = newStake
+
+        if newStake == 0:
+            sql = "DELETE FROM channels WHERE fromId=%s AND toId=%s"
+            values = (toId, fromId)
+            self.cursor.execute(sql, values)
+            self.cnx.commit()
+        else:
+            # set remaining counterparty stake in db
+            sql = "UPDATE channels SET balance=%s WHERE fromId=%s AND toId=%s"
+            values = (newStake, toId, fromId)
+            self.cursor.execute(sql, values)
+            self.cnx.commit()
+
+        # reset earnings
         self.earnings[fromId - 1][toId - 1] = 0
-        self.stake[fromId - 1][toId - 1] = 0
+
+        # increase balance in db by earnings
+        balance = self.players[fromId - 1][2]
+        newBalance = int(balance + earnings)
+        #print("claiming earnings of user ", fromId, " new balance = ", newBalance)
         sql = "UPDATE users SET balance=%s WHERE id=%s"
-        values = (int(balance + earnings), toId)
+        values = (newBalance, fromId)
         self.cursor.execute(sql, values)
         self.cnx.commit()
 

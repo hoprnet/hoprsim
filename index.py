@@ -23,11 +23,9 @@ dbConnection = mysql.connector.connect(user = user,
                                  database = database)
 
 myCache = gameCache.gameCache(dbConnection)
-ct = ctAgent.ctAgent(myCache, 10)
+ct = ctAgent.ctAgent(myCache, 13)
 
 # TODO:
-# run CT every 10 seconds
-# list CT paths and payouts over time
 #
 # OPTIONAL:
 # add "cancel" button during edit, dont make these buttons flash
