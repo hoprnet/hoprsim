@@ -28,13 +28,11 @@ ct = ctAgent.ctAgent(myCache, 13)
 # TODO:
 # add "new connection" form in player table
 # fix claim & stake UI, should be separate non-transparent overlay with more information and help
-# render stake numbers with `k`, `m`, `b` and fix column width
-# add "cancel" button during edit, dont make these buttons flash
+# add "cancel" button during edit
 #
 # NICE TO HAVES:
 # render server-side errors in UI
 # do not always go through landing page animation
-# only landing page button should flash
 # add hover tooltip for stake table
 # add animated user guide for first time user
 

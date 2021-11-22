@@ -88,6 +88,22 @@ h1 {
   color: rgba(0, 0, 0, 1);
 }
 
+table {
+  border-spacing: 0px;
+}
+
+th {
+  padding: 5px 10px;
+}
+
+td {
+  padding: 5px 10px;
+}
+
+.row2 {
+  background: rgba(0, 0, 0, 0.2);
+}
+
 .stakeEntry {
   text-align: right;
   width: 30px;

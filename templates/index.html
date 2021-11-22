@@ -1,7 +1,8 @@
+<!DOCTYPE html>
 <html>
     <head>
         <title>Solar hop ring</title>
-        <link rel="stylesheet" href="/static/styles.css?b=12">
+        <link rel="stylesheet" href="/static/styles.css?b=16">
     </head>
     <body class="bg">
         <h1>Solar hop ring</h1>
@@ -35,16 +36,20 @@
                 <th># in</th>
             </tr>
             {% for c in range(members|length): %}
-            <tr>
+            <tr
+                {% if c%2 == 0 %}
+                class="row2"
+                {% endif %}
+                >
                 <td style="text-align: right">{{ members[c][0] }}</td>
                 <td>{{ members[c][1] }}</td>
                 <td style="text-align: right">{{ prettyBalance[c] }}</td>
                 <td style="text-align: right">{{ members[c][3] }}</td>
                 <td style="text-align: right">{{ members[c][4] }}
                     {% if members[c][4] != "0" %}
-                        <form action = "/claimAllEarnings" method = "post">
+                        <form action = "/claimAllEarnings" method = "post" style="display: inline-block;">
                             <input type="hidden" name="fromId" value="{{ members[c][0] }}"/>
-                            <p><input type="submit" value="claim" class="button"/></p>
+                            <input type="submit" value="claim" class="button"/>
                         </form>
                     {% endif %}
                 </td>
@@ -73,7 +78,11 @@
                 {% endfor %}
                 </tr>
                 {% for i in range(stake|length): %}
-                <tr>
+                <tr
+                    {% if i%2 == 0 %}
+                    class="row2"
+                    {% endif %}
+                    >
                     <th>{{ i+1 }}</th>
                     {% for j in range(stake[i]|length): %}
                     <td>
