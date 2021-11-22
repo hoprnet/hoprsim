@@ -23,11 +23,10 @@ dbConnection = mysql.connector.connect(user = user,
                                  database = database)
 
 myCache = gameCache.gameCache(dbConnection)
-ct = ctAgent.ctAgent(myCache, 13)
+ct = ctAgent.ctAgent(myCache, 1)
 
 # TODO:
 # add "new connection" form in player table
-# fix claim & stake UI, should be separate non-transparent overlay with more information and help
 # add "cancel" button during edit
 #
 # NICE TO HAVES:
@@ -38,6 +37,9 @@ ct = ctAgent.ctAgent(myCache, 13)
 
 app = Flask(__name__, static_url_path="/static")
 
+# assembling pretty lists on the fly is optimized for few page requests and lots of user actions
+# when we have more page loads than stake/earnings changes (i.e. a lot of users refreshing the page)
+# then we should re-calculate that on every stake/earnings update
 @app.route("/")
 @app.route("/index")
 def index():

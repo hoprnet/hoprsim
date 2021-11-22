@@ -312,15 +312,15 @@ def prettyNumber(number):
 
     if number < 1e3:
         decimals = 0
-    elif number >= 1e3 and number < 10e3:
+    elif number >= 1e3 and number < 10.5e3:
         decimals = 1
-    elif number >= 10e3 and number < 1e6:
+    elif number >= 10e3 and number < 1.05e6:
         decimals = 0
-    elif number >= 1e6 and number < 10e6:
+    elif number >= 1e6 and number < 10.5e6:
         decimals = 1
-    elif number >= 10e6 and number < 1e9:
+    elif number >= 10e6 and number < 1.05e9:
         decimals = 0
-    elif number >= 1e9 and number < 10e9:
+    elif number >= 1e9 and number < 10.5e9:
         decimals = 1
     prettyNumber = format(number/divisor, "." + str(decimals) + "f") + prefix
     return prettyNumber

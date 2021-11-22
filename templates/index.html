@@ -85,8 +85,8 @@
                     >
                     <th>{{ i+1 }}</th>
                     {% for j in range(stake[i]|length): %}
-                    <td>
-                        <div onclick="clickStake()" class="stakeEntry" data-from="{{ i+1 }}" data-to="{{ j+1 }}" id="view-{{ i+1 }}-{{ j+1 }}">
+                    <td onclick="clickStake()" class="stakeEntry" data-from="{{ i+1 }}" data-to="{{ j+1 }}" id="view-{{ i+1 }}-{{ j+1 }}">
+                        <div  onclick="clickStake()" class="stakeEntry" data-from="{{ i+1 }}" data-to="{{ j+1 }}" id="view-{{ i+1 }}-{{ j+1 }}">
                             {% if stake[i][j] != 0 %}
                                 {{ prettyStake[i][j] }}
                             {% else %}
@@ -101,16 +101,15 @@
                                 <form action = "/claimEarnings" method = "post">
                                     <input type="hidden" name="fromId" value="{{ i+1 }}"/>
                                     <input type="hidden" name="toId" value="{{ j+1 }}"/>
-                                    <p><input type="submit" value="claim" class="button"/></p>
+                                    <input type="submit" value="claim" class="button"/>
                                 </form>
                             </div>
-                            <div id="edit-{{ i+1 }}-{{ j+1 }}" style="display: none" name="forms">
+                            <div id="edit-{{ i+1 }}-{{ j+1 }}" style="display: none; position: relative;" name="forms">
                                 <form action = "/setStake" method = "post">
-                                    <p>Amount:</p>
-                                    <p><input type="number" name="stakeAmount" value="{{ stake[i][j] }}"/></p>
+                                    <input type="number" name="stakeAmount" value="{{ stake[i][j] }}" style="width: 60px;" />
                                     <input type="hidden" name="fromId" value="{{ i+1 }}"/>
                                     <input type="hidden" name="toId" value="{{ j+1 }}"/>
-                                    <p><input type="submit" value="update" class="button"/></p>
+                                    <input type="submit" value="update" class="button"/>
                                 </form>
                             </div>
                         </div>
