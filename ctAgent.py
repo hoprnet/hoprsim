@@ -44,8 +44,7 @@ class ctAgent:
         channelsToBeClosed = []
         # check if any channels are at zero balance
         for i in range(self.gameCache.numPlayers):
-            # TODO: should be 3 * payout
-            if (ctNodeStake[i] != 0 and ctNodeStake[i] < counterPartyEarnings[i] + self.payoutPerHop):
+            if (ctNodeStake[i] != 0 and ctNodeStake[i] < counterPartyEarnings[i] + self.payoutPerHop * self.hops):
                 channelsToBeClosed.append(i)
             elif (ctNodeStake[i] < counterPartyEarnings[i]):
                 print("ERROR! ct node stake should never be smaller than earnings of counterparty")
@@ -128,9 +127,9 @@ class ctAgent:
                         print("WARNING: ",earned," + ",payout," > stake[", pathIndices[hop-1], "][", pathIndices[hop], "]=", counterPartyStake)
                         break # no further downstream nodes will earn anything
                     self.gameCache.earnings[pathIndices[hop]][pathIndices[hop-1]] += payout
-                    print("earnings now: ", self.gameCache.earnings[pathIndices[hop]][pathIndices[hop-1]])
-                    self.gameCache.updateStake(pathIndices[hop-1]+1, pathIndices[hop]+1, counterPartyStake - payout)
-                    print("earnings now: ", self.gameCache.earnings[pathIndices[hop]][pathIndices[hop-1]])
+                    #print("earnings now: ", self.gameCache.earnings[pathIndices[hop]][pathIndices[hop-1]])
+                    #self.gameCache.updateStake(pathIndices[hop-1]+1, pathIndices[hop]+1, counterPartyStake - payout)
+                    #print("earnings now: ", self.gameCache.earnings[pathIndices[hop]][pathIndices[hop-1]])
                 break # we found a path so we can stop trying
             elif len(pathIndices) < 2:
                 print("ERROR: no path left to try, aborting attempts")
