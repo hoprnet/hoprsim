@@ -10,6 +10,7 @@ class ctAgent:
     ctTickDurationSeconds = 10.0
     hops = 3 # 3 for routes with 3 intermediate hops
     payoutPerHop = 1; # number of tokens to be paid to each hop
+    attemptsPerTick = 10; # number of attempts to find a path of length `hops` before not sending any packet
 
     # ct state
     ctChannelBalances = [] # amounts which the ct node funded towards that channel
@@ -43,6 +44,7 @@ class ctAgent:
         channelsToBeClosed = []
         # check if any channels are at zero balance
         for i in range(self.gameCache.numPlayers):
+            # TODO: should be 3 * payout
             if (ctNodeStake[i] != 0 and ctNodeStake[i] < counterPartyEarnings[i] + self.payoutPerHop):
                 channelsToBeClosed.append(i)
             elif (ctNodeStake[i] < counterPartyEarnings[i]):
@@ -85,46 +87,60 @@ class ctAgent:
     def sendPacket(self):
         print("sending packet")
 
-        nodePayout = [0] * self.gameCache.numPlayers
-        nextNodeIndex = self.ctNodeId
-        pathIndices = [nextNodeIndex]
+        # persist importance list between attempts so that dead ends can be removed
+        importanceAttempts = self.gameCache.importance.copy()
 
-        for j in range(self.hops):
-            # reset importance
-            importanceTmp = list(self.gameCache.importance)
+        for a in range(self.attemptsPerTick):
+            nextNodeIndex = self.ctNodeId
+            pathIndices = [nextNodeIndex]
 
-            # remove importance entries for nodes to which current hop has no open channels
-            # this is used in the path selection for the next hop
-            for i in range(self.gameCache.numPlayers):
-                if self.gameCache.stake[nextNodeIndex][i] == 0 :
+            # try to find a path
+            for j in range(self.hops):
+                # reset importance
+                importanceTmp = importanceAttempts.copy()
+
+                # remove importance entries for nodes to which current hop has no open channels
+                # this is used in the path selection for the next hop
+                for i in range(self.gameCache.numPlayers):
+                    if self.gameCache.stake[nextNodeIndex][i] == 0 :
+                        importanceTmp[i] = 0
+
+                # prevent loops in path by removing existing nodes on path from list
+                for i in pathIndices:
                     importanceTmp[i] = 0
 
-            # prevent loops in path by removing existing nodes on path from list
-            for i in pathIndices:
-                importanceTmp[i] = 0
+                nextNodeIndex = hoprsim.randomPickWeightedByImportance(importanceTmp)
+                if nextNodeIndex == -1:
+                    break # stop looking for path if no next node could be found
+                pathIndices.append(nextNodeIndex)
 
-            nextNodeIndex = hoprsim.randomPickWeightedByImportance(importanceTmp)
-            if nextNodeIndex == -1:
-                break # stop looking for path if no next node could be found
-            pathIndices.append(nextNodeIndex)
+            print("Found path: ", pathIndices)
+            # then facilitate they payout to each node
+            # but only as long as the edge is valid (new earnings + existing earnings <= counter party stake)
+            deadEnd = -1
+            if len(pathIndices) == self.hops + 1:
+                for hop in range(1,self.hops):
+                    # in 3 hop route, 1st relayer gets 3, 2nd gets 2, 3rd gets 1 `payoutPerHop`
+                    payout = (self.hops + 1 - hop) * self.payoutPerHop
+                    earned = self.gameCache.earnings[pathIndices[hop]][pathIndices[hop-1]]
+                    counterPartyStake = self.gameCache.stake[pathIndices[hop-1]][pathIndices[hop]]
+                    if earned + payout > counterPartyStake:
+                        print("WARNING: ",earned," + ",payout," > stake[", pathIndices[hop-1], "][", pathIndices[hop], "]=", counterPartyStake)
+                        break # no further downstream nodes will earn anything
+                    self.gameCache.earnings[pathIndices[hop]][pathIndices[hop-1]] += payout
+                    print("earnings now: ", self.gameCache.earnings[pathIndices[hop]][pathIndices[hop-1]])
+                    self.gameCache.updateStake(pathIndices[hop-1]+1, pathIndices[hop]+1, counterPartyStake - payout)
+                    print("earnings now: ", self.gameCache.earnings[pathIndices[hop]][pathIndices[hop-1]])
+                break # we found a path so we can stop trying
+            elif len(pathIndices) < 2:
+                print("ERROR: no path left to try, aborting attempts")
+                break
+            #else:
+            # TODO: exclusion of dead ends like this does not make sense
+            #       what is a dead end on one path is not necessarily dead on all others
+            #    print("Found dead end on path, removing node ", pathIndices[1])
+            #    importanceAttempts[pathIndices[1]] = 0
 
-            # TODO 2: instead of doing a payout right away, first construct the full path
-            #       and only if we find a path of length 3 hops, do the payout
-
-            # TODO 3: when increasing the earnings, we should check which channels are still
-            #       sufficiently funded for these earnings
-            #       if a channel stake is too low, the previous node retains all down-stream earnings
-
-            # give equal payout 1 HOPR reward to nodes selected in the path
-            nodePayout[nextNodeIndex] += self.payoutPerHop
-            self.gameCache.earnings[nextNodeIndex][pathIndices[-2]] += self.payoutPerHop
-
-            # TODO 1: in reality the CT node does not know a node's earnings
-            #       and it would construct the path regardless
-            #       in that case the node upstream of the out-of-funds node
-            #       would end up with the additional remaining balance to be forwarded
-
-            # store path
         print("path: ", pathIndices)
         #print("earnings:")
         #hoprsim.printArray2d(self.gameCache.earnings, 1)
@@ -135,4 +151,11 @@ class ctAgent:
         self.sendPacket()
         t = threading.Timer(self.ctTickDurationSeconds, self.tick)
         t.start()
+
+
+
+
+
+
+
 

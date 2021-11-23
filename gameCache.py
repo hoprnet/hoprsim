@@ -126,6 +126,7 @@ class gameCache:
     if new stake is smaller than counterparty earnings, this function will claim the earnings
     """
     def updateStake(self, fromId, toId, newStake):
+        # TODO: clarify when to claim earnings and when not while updating stake
         self.claimEarnings(fromId, toId)
         self.claimEarnings(toId, fromId)
         balance = self.players[fromId-1][2]

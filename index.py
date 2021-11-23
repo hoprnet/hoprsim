@@ -37,7 +37,7 @@ ct = ctAgent.ctAgent(myCache, 1)
 
 app = Flask(__name__, static_url_path="/static")
 
-# assembling pretty lists on the fly is optimized for few page requests and lots of user actions
+# here we assemble pretty lists on the fly which is better for few page requests and lots of stake/earnings changes (i.e. few users)
 # when we have more page loads than stake/earnings changes (i.e. a lot of users refreshing the page)
 # then we should re-calculate that on every stake/earnings update
 @app.route("/")
