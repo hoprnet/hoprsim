@@ -38,3 +38,30 @@ function clickEarnings() {
   event.stopPropagation();
 }
 
+var nextTickTime
+var countdown
+function startTickCountdown(nextTick) {
+  console.log("started tick: " + nextTick);
+  nextTickTime = new Date(nextTick)
+  now = new Date(Date.now())
+  deltaSeconds = Math.ceil(nextTickTime - now)
+  printCountdown(deltaSeconds)
+  if (deltaSeconds > 0)
+    countdown = setInterval(renderCountdown, 1000)
+}
+
+function renderCountdown() {
+  console.log("rendering countdown...");
+  now = Date.now();
+  deltaSeconds = Math.ceil(nextTickTime - now);
+  printCountdown(deltaSeconds)
+  if (deltaSeconds <= 0)
+    clearInterval(countdown);
+}
+
+function printCountdown(deltaSeconds) {
+  arrivalTime = deltaSeconds > 0 ? Math.ceil(deltaSeconds/1000) : 0;
+  document.getElementById("nextTickBox").innerText = "next travelers expected in " + arrivalTime + " seconds";
+}
+
+

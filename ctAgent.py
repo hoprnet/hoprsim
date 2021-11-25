@@ -1,6 +1,7 @@
 import hoprsim
 import threading
 import numpy as np
+import datetime
 
 class ctAgent:
 
@@ -136,7 +137,7 @@ class ctAgent:
                 break
             #else:
             # TODO: exclusion of dead ends like this does not make sense
-            #       what is a dead end on one path is not necessarily dead on all others
+            #       switch to the heap-based approach as currently implemented in js
             #    print("Found dead end on path, removing node ", pathIndices[1])
             #    importanceAttempts[pathIndices[1]] = 0
 
@@ -148,6 +149,8 @@ class ctAgent:
         #print("CT tick")
         self.openChannels()
         self.sendPacket()
+        self.nextTick = datetime.datetime.utcnow() + datetime.timedelta(seconds = int(self.ctTickDurationSeconds))
+        print("next tick: ", self.nextTick)
         t = threading.Timer(self.ctTickDurationSeconds, self.tick)
         t.start()
 

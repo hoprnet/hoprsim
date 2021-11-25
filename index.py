@@ -8,6 +8,8 @@ from decimal import *
 
 from threading import Timer
 
+import datetime
+
 import numpy
 
 import hoprsim
@@ -51,6 +53,7 @@ def index():
                            prettyStake=hoprsim.getPrettyMatrix(myCache.stake),
                            prettyEarnings=hoprsim.getPrettyMatrix(myCache.earnings),
                            earnings=myCache.earnings,
+                           nextTick=ct.nextTick.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
                            )
 
 @app.route("/addPlayer", methods = ["POST"])

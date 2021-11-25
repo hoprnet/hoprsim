@@ -333,3 +333,8 @@ def getPrettyList(uglyList):
     print("ugly list: ", uglyList)
     prettyList = [prettyNumber(uglyList[i]) for i in range(len(uglyList))]
     return prettyList
+
+def selectPathCt(stake, importance, ctNodeId):
+
+    path=[]
+    return path

@@ -4,7 +4,7 @@
         <title>Solar hop ring</title>
         <link rel="stylesheet" href="/static/styles.css?b=16">
     </head>
-    <body class="bg">
+    <body class="bg" onpageshow="startTickCountdown('{{ nextTick }}')">
         <h1>Solar hop ring</h1>
         <div class="txt" id="introText">
         The year is 2284. Mankind has successfully defeated diseases, hunger, wars and borders.
@@ -70,6 +70,8 @@
             The small numbers in brackets show how much the player in that row has earned but not yet claimed from players indicated in the columns.
             Click on a cell in the table to modify the investment, click on the earnings to claim the earning onto your balance.
             </div>
+            <div id="nextTickBox">...
+            </div>
             <table>
                 <tr>
                     <th></th>
@@ -130,7 +132,7 @@
           </form>
         </div>
 
-        <script src="/static/scripts.js?b=15">
+        <script src="/static/scripts.js?b=28">
         </script>
     </body>
 </html>
