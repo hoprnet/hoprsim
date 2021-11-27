@@ -2,10 +2,21 @@
 <html>
     <head>
         <title>Solar hop ring</title>
-        <link rel="stylesheet" href="/static/styles.css?b=16">
+        <link rel="stylesheet" href="/static/styles.css">
     </head>
-    <body class="bg" onpageshow="startTickCountdown('{{ nextTick }}')">
-        <h1>Solar hop ring</h1>
+    <body class="bg" onpageshow="onPageShow('{{ nextTick }}')">
+        <div class="txt" style="width: 100%">
+            <div style="float: left;">
+                <div id="Countdown">Next travelers: 0s</div>
+            </div>
+            <div style="float: right;"><div id="PlayerName">Player: Name</div>
+                <div id="PlayerBalance">Balance: 1'234'456</div>
+                <div id="PlayerScore">χοπρ score: 1'234'456</div>
+            </div>
+           <div>
+               <h1>Solar hop ring</h1>
+           </div>
+        </div>
         <div class="txt" id="introText">
         The year is 2284. Mankind has successfully defeated diseases, hunger, wars and borders.
         <div class="gap"></div>
@@ -24,19 +35,19 @@
         </div>
 
         <div id="playerTable" class="table">
-        <table>
+        <table id="playerOverviewTable">
             <tr>
                 <th>ID</th>
                 <th>Name</th>
                 <th>Balance</th>
                 <th style="padding: 10px;">&chi;&omicron;&pi;&rho; score</th>
-                <th>Claimable</th>
+                <!--<th>Claimable</th>-->
                 <th>Invested</th>
                 <th># out</th>
                 <th># in</th>
             </tr>
             {% for c in range(members|length): %}
-            <tr
+            <tr name="tableRow"  
                 {% if c%2 == 0 %}
                 class="row2"
                 {% endif %}
@@ -45,14 +56,14 @@
                 <td>{{ members[c][1] }}</td>
                 <td style="text-align: right">{{ prettyBalance[c] }}</td>
                 <td style="text-align: right">{{ members[c][3] }}</td>
-                <td style="text-align: right">{{ members[c][4] }}
+                <!--<td style="text-align: right">{{ members[c][4] }}
                     {% if members[c][4] != "0" %}
                         <form action = "/claimAllEarnings" method = "post" style="display: inline-block;">
                             <input type="hidden" name="fromId" value="{{ members[c][0] }}"/>
                             <input type="submit" value="claim" class="button"/>
                         </form>
                     {% endif %}
-                </td>
+                </td>-->
                 <td style="text-align: right">{{ members[c][5] }}</td>
                 <td style="text-align: right">{{ members[c][6] }}</td>
                 <td style="text-align: right">{{ members[c][7] }}</td>
@@ -70,9 +81,7 @@
             The small numbers in brackets show how much the player in that row has earned but not yet claimed from players indicated in the columns.
             Click on a cell in the table to modify the investment, click on the earnings to claim the earning onto your balance.
             </div>
-            <div id="nextTickBox">...
-            </div>
-            <table>
+            <table id="tableStake">
                 <tr>
                     <th></th>
                 {% for i in range(stake|length): %}
@@ -80,7 +89,7 @@
                 {% endfor %}
                 </tr>
                 {% for i in range(stake|length): %}
-                <tr
+                <tr name="tableRow"  
                     {% if i%2 == 0 %}
                     class="row2"
                     {% endif %}
@@ -132,7 +141,7 @@
           </form>
         </div>
 
-        <script src="/static/scripts.js?b=28">
+        <script src="/static/scripts.js">
         </script>
     </body>
 </html>

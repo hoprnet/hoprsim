@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 
 import mysql.connector
 import secrets
@@ -38,6 +38,12 @@ ct = ctAgent.ctAgent(myCache, 1)
 # add animated user guide for first time user
 
 app = Flask(__name__, static_url_path="/static")
+
+# disable browser caching of content (e.g. CSS / JS) which is annoying for testing 
+@app.after_request
+def add_header(response):
+    response.cache_control.max_age = 0
+    return response
 
 # here we assemble pretty lists on the fly which is better for few page requests and lots of stake/earnings changes (i.e. few users)
 # when we have more page loads than stake/earnings changes (i.e. a lot of users refreshing the page)
@@ -110,6 +116,19 @@ def setStake():
     toId = int(request.form["toId"])
     myCache.updateStake(fromId, toId, newStake)
     return index()
+
+@app.route("/getCache", methods = ["GET"])
+def getCache():
+    cache = {
+        "members": myCache.playerTable,
+        "stake": myCache.stake,
+        "prettyBalance": hoprsim.getPrettyList(list(list(zip(*myCache.playerTable))[2])),
+        "prettyStake": hoprsim.getPrettyMatrix(myCache.stake),
+        "prettyEarnings": hoprsim.getPrettyMatrix(myCache.earnings),
+        "earnings": myCache.earnings,
+        "nextTick": ct.nextTick.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    }
+    return jsonify(cache)
 
 app.run(host="0.0.0.0", port=8080)
 
