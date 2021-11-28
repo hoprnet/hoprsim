@@ -52,15 +52,7 @@ def add_header(response):
 @app.route("/index")
 def index():
     myCache.updatePlayerTable()
-    return render_template("index.html",
-                           members=myCache.playerTable,
-                           stake=myCache.stake,
-                           prettyBalance=hoprsim.getPrettyList(list(list(zip(*myCache.playerTable))[2])),
-                           prettyStake=hoprsim.getPrettyMatrix(myCache.stake),
-                           prettyEarnings=hoprsim.getPrettyMatrix(myCache.earnings),
-                           earnings=myCache.earnings,
-                           nextTick=ct.nextTick.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-                           )
+    return render_template("index.html")
 
 @app.route("/addPlayer", methods = ["POST"])
 def addPlayer():
@@ -97,16 +89,22 @@ def claimAllEarnings():
     for i in range(len(allEarnings)):
         earnings = allEarnings[i]
         if earnings > 0:
-            myCache.earnings[fromId-1][i] = 0
-            totalEarnings += earnings
-    if totalEarnings == 0:
-        print("ERROR: no earnings to claim")
-    else:
-        sql = "UPDATE users SET balance=%s WHERE id=%s"
-        values = (int(balance + totalEarnings), fromId)
-        myCache.cursor.execute(sql, values)
-        myCache.cnx.commit()
-        myCache.updateEntireCache()
+            myCache.claimEarnings(fromId, i+1)
+    #        earnings = myCache.earnings[fromId-1][i]
+    #        counterpartyStake = myCache.stake[i][fromId-1]
+    #        if earnings > counterpartyStake:
+    #            print("ERROR: earnings exceed counterparty stake")
+    #            return index()
+    #        myCache.earnings[fromId-1][i] = 0
+    #        totalEarnings += earnings
+    #if totalEarnings == 0:
+    #    print("ERROR: no earnings to claim")
+    #else:
+    #    sql = "UPDATE users SET balance=%s WHERE id=%s"
+    #    values = (int(balance + totalEarnings), fromId)
+    #    myCache.cursor.execute(sql, values)
+    #    myCache.cnx.commit()
+    #    myCache.updateEntireCache()
     return index()
 
 @app.route("/setStake", methods = ["POST"])
@@ -122,9 +120,9 @@ def getCache():
     cache = {
         "members": myCache.playerTable,
         "stake": myCache.stake,
-        "prettyBalance": hoprsim.getPrettyList(list(list(zip(*myCache.playerTable))[2])),
-        "prettyStake": hoprsim.getPrettyMatrix(myCache.stake),
-        "prettyEarnings": hoprsim.getPrettyMatrix(myCache.earnings),
+        #"prettyBalance": hoprsim.getPrettyList(list(list(zip(*myCache.playerTable))[2])),
+        #"prettyStake": hoprsim.getPrettyMatrix(myCache.stake),
+        #"prettyEarnings": hoprsim.getPrettyMatrix(myCache.earnings),
         "earnings": myCache.earnings,
         "nextTick": ct.nextTick.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     }

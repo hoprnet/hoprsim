@@ -41,20 +41,7 @@ function clickEarnings() {
 
 var nextTickTime
 var countdown
-function onPageShow(nextTick) {
-  nextTickTime = new Date(nextTick)
-  now = new Date(Date.now())
-  deltaSeconds = Math.ceil(nextTickTime - now)
-
-  playerId = parseInt(getCookie("playerId"))
-
-  printCountdown(deltaSeconds)
-  if (deltaSeconds > 0)
-    countdown = setInterval(renderCountdown, 1000)
-
-  if (getCookie("showIntro") == "false")
-    enterGame()
-
+function loadData() {
   var opts = {
     method: 'GET',      
     headers: {}
@@ -65,9 +52,25 @@ function onPageShow(nextTick) {
     .then(function (gameCache) {
       console.log("got game cache: " + JSON.stringify(gameCache))
 
+      var nextTick = gameCache.nextTick;
       var stake = gameCache.stake;
+      var earnings = gameCache.earnings;
       var members = gameCache.members;
       var len = stake.length;
+  
+      nextTickTime = new Date(nextTick)
+      now = new Date(Date.now())
+      deltaSeconds = Math.ceil(nextTickTime - now)
+
+      playerId = parseInt(getCookie("playerId"))
+
+      printCountdown(deltaSeconds)
+      if (deltaSeconds > 0)
+        countdown = setInterval(renderCountdown, 1000)
+
+      if (getCookie("showIntro") == "false")
+        enterGame()
+
 
       // calculate total stake, num channels in, num channels out
       var totalStake = [];
@@ -82,7 +85,7 @@ function onPageShow(nextTick) {
         }
         totalStake.push(tmpStake);
       }
-      console.log("total stake: " + JSON.stringify(totalStake));
+      // console.log("total stake: " + JSON.stringify(totalStake));
 
       // calculate importance score of each player
       var importance = []
@@ -97,7 +100,7 @@ function onPageShow(nextTick) {
         }
         importance.push(totalStake[i] * channelWeight);
       }
-      console.log("importance: " + JSON.stringify(importance));
+      // console.log("importance: " + JSON.stringify(importance));
 
       // render menu
       if (!isNaN(playerId)) {
@@ -108,15 +111,27 @@ function onPageShow(nextTick) {
         player = members[playerId - 1]
         document.getElementById("PlayerName").innerText = "Player: " + player[1];
         document.getElementById("PlayerBalance").innerText = "Balance: " + player[2];
-        document.getElementById("PlayerScore").innerText = "χοπρ score: " + importance[playerId - 1];
-      }
-      else {
-        document.getElementById("PlayerName").innerText = "[no name]";
-        document.getElementById("PlayerBalance").innerText = "[no balance]";
-        document.getElementById("PlayerScore").innerText = "[no χοπρ score]";
+        document.getElementById("PlayerScore").innerText = "χοπρ score: " + importance[playerId - 1].toLocaleString("en-US", {
+            style: "decimal",
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+          });
+        // TODO: add "claim all" button to menu
+        playerEarnings = 0
+        for (var i = 0; i < len; i++) {
+          playerEarnings += earnings[playerId - 1][i];
+        }
+        if (playerEarnings > 0) {
+          document.getElementById("PlayerEarnings").innerText = "Unclaimed earnings: " + playerEarnings;
+          document.getElementById("PlayerClaimButton").innerHTML = " \
+            <form action = '/claimAllEarnings' method = 'post'> \
+              <input type='hidden' name='fromId' value='" + (playerId) + "'/> \
+              <input type='submit' value='claim' class='button'/> \
+            </form>";
+        }
       }
 
-      // remove existing rows in player table
+      // remove existing rows in player table and stake table
       var playerRows = document.getElementsByName("tableRow");
       var numRows = playerRows.length;
       for (var i = 0; i < numRows; i++) {
@@ -127,9 +142,9 @@ function onPageShow(nextTick) {
       var table = document.getElementById("playerOverviewTable");
       for (var numRows = 1; numRows < len + 1; numRows++) {
         var newRow = table.insertRow(numRows);
-        
+        newRow.setAttribute("name","tableRow");
+
         if (numRows % 2 == 1) {
-          console.log("row2");
           newRow.className = "row2";
         }
 
@@ -166,13 +181,24 @@ function onPageShow(nextTick) {
         cell7.innerText = numOut[numRows - 1];
       }
 
-      // render stake table
+      // render header of stake table
       tableStake = document.getElementById("tableStake");
+      var newRow = tableStake.insertRow(0);
+      var headerCell = document.createElement("TH");
+      newRow.appendChild(headerCell);
+      newRow.setAttribute("name","tableRow");
+      for (var i = 0; i < len; i++) {
+        headerCell = document.createElement("TH");
+        headerCell.innerText = i + 1;
+        newRow.appendChild(headerCell);
+      }
+      
+      // render stake table
       for (var i = 0; i < len; i++) {
         var newRow = tableStake.insertRow(i + 1);
-        
+        newRow.setAttribute("name","tableRow");
+
         if (i % 2 == 0) {
-          console.log("row2");
           newRow.className = "row2";
         }
 
@@ -181,10 +207,9 @@ function onPageShow(nextTick) {
         newRow.appendChild(headerCell);
         for (var j = 0; j < len; j++) {
           var newCell = newRow.insertCell(j + 1);
-          console.log("stake: " + stake[i][j]);
           newCell.innerHTML = stake[i][j].toString() + "<div id='edit-" + (i+1) + "-" + (j+1) + "', style='display: none; position: relative;' name='forms'> \
               <form action = '/setStake' method = 'post'> \
-                <input type='number' name='stakeAmount' value='" + stake[i][j] + " style='width: 60px;' /> \
+                <input type='number' name='stakeAmount' value='" + stake[i][j] + "' style='width: 60px;' /> \
                 <input type='hidden' name='fromId' value='" + (i+1) + "'/> \
                 <input type='hidden' name='toId' value='" + (j+1) + "'/> \
                 <input type='submit' value='update' class='button'/> \
@@ -204,8 +229,10 @@ function renderCountdown() {
   now = Date.now();
   deltaSeconds = Math.ceil(nextTickTime - now);
   printCountdown(deltaSeconds)
-  if (deltaSeconds <= 0)
+  if (deltaSeconds <= 0) {
     clearInterval(countdown);
+    loadData();
+  }
 }
 
 function printCountdown(deltaSeconds) {

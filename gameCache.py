@@ -84,6 +84,7 @@ class gameCache:
             if(self.stake[c[1]-1][c[2]-1] != 0):
                 print("ERROR! found double entry in stake matrix for channel ", c[1], "-", c[2])
             self.stake[c[1]-1][c[2]-1] = c[3]
+            print("channel: ", c[1], "->", c[2], ": ", c[3])
 
     def updateImportance(self):
         self.importance = hoprsim.calcImportance(self.stake)
@@ -201,8 +202,12 @@ class gameCache:
         self.updateEntireCache()
 
     def claimEarnings(self, fromId, toId):
+        print("CLAIM EARNINGS")
+        hoprsim.printArray2d(self.earnings)
         earnings = self.earnings[fromId - 1][toId - 1]
         counterpartyStake = self.stake[toId - 1][fromId - 1]
+        print("claiming earnings from ", fromId, " to ", toId, ", earnings: ", earnings)
+        print("counterparty stake: ", counterpartyStake)
         if (earnings > counterpartyStake):
             print("ERROR: cannot claim earnings, counter party has too low stake - cheata!")
             return
@@ -212,6 +217,7 @@ class gameCache:
 
         # set remaining counterparty stake in cache
         newStake = int(counterpartyStake - earnings)
+        print("new stake: ", newStake)
         #print("setting stake from ", toId, " to ", fromId, " = ", newStake)
         self.stake[toId - 1][fromId - 1] = newStake
 
@@ -233,6 +239,10 @@ class gameCache:
         # increase balance in db by earnings
         balance = self.players[fromId - 1][2]
         newBalance = int(balance + earnings)
+        # update balance in cache
+        player = list(self.players[fromId - 1])
+        player[2] = newBalance
+        self.players[fromId - 1] = tuple(player)
         #print("claiming earnings of user ", fromId, " new balance = ", newBalance)
         sql = "UPDATE users SET balance=%s WHERE id=%s"
         values = (newBalance, fromId)

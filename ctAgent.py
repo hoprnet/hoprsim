@@ -8,7 +8,7 @@ class ctAgent:
     # these values are settings which might also be moved to constructor later?
     tokensPerChannel = 10 # token balance to fund new channels with
     channelCount = 3 # trying to reach this many outgoing channels (or until out of balance, whatever comes first)
-    ctTickDurationSeconds = 10.0
+    ctTickDurationSeconds = 20.0
     hops = 3 # 3 for routes with 3 intermediate hops
     payoutPerHop = 1; # number of tokens to be paid to each hop
     attemptsPerTick = 10; # number of attempts to find a path of length `hops` before not sending any packet
@@ -29,8 +29,6 @@ class ctAgent:
         print("Initializing ct agent...")
         self.gameCache = cache
         self.ctNodeId = ctNodeId - 1 # to transform it from the sql 1-index to the 0-indexed cache
-        print("importance list: ")
-        hoprsim.printArray1d(self.gameCache.importance)
         t = threading.Timer(1, self.tick)
         t.start()
 
@@ -98,6 +96,7 @@ class ctAgent:
             for j in range(self.hops):
                 # reset importance
                 importanceTmp = importanceAttempts.copy()
+                #hoprsim.printArray1d(importanceTmp, 1)
 
                 # remove importance entries for nodes to which current hop has no open channels
                 # this is used in the path selection for the next hop
@@ -109,6 +108,7 @@ class ctAgent:
                 for i in pathIndices:
                     importanceTmp[i] = 0
 
+                #hoprsim.printArray1d(importanceTmp, 1)
                 nextNodeIndex = hoprsim.randomPickWeightedByImportance(importanceTmp)
                 if nextNodeIndex == -1:
                     break # stop looking for path if no next node could be found
@@ -119,10 +119,11 @@ class ctAgent:
             # but only as long as the edge is valid (new earnings + existing earnings <= counter party stake)
             deadEnd = -1
             if len(pathIndices) == self.hops + 1:
-                for hop in range(1,self.hops):
+                for hop in range(1,self.hops + 1):
                     # in 3 hop route, 1st relayer gets 3, 2nd gets 2, 3rd gets 1 `payoutPerHop`
                     payout = (self.hops + 1 - hop) * self.payoutPerHop
                     earned = self.gameCache.earnings[pathIndices[hop]][pathIndices[hop-1]]
+                    print("earnings for hop ", hop, " are ", earned, ", payout is ", payout)
                     counterPartyStake = self.gameCache.stake[pathIndices[hop-1]][pathIndices[hop]]
                     if earned + payout > counterPartyStake:
                         print("WARNING: ",earned," + ",payout," > stake[", pathIndices[hop-1], "][", pathIndices[hop], "]=", counterPartyStake)
