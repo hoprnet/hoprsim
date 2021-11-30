@@ -10,13 +10,18 @@ class ctAgent:
     channelCount = 3 # trying to reach this many outgoing channels (or until out of balance, whatever comes first)
     ctTickDurationSeconds = 20.0
     hops = 3 # 3 for routes with 3 intermediate hops
-    payoutPerHop = 1; # number of tokens to be paid to each hop
-    attemptsPerTick = 10; # number of attempts to find a path of length `hops` before not sending any packet
+    payoutPerHop = 1 # number of tokens to be paid to each hop
+    attemptsPerTick = 10 # number of attempts to find a path of length `hops` before not sending any packet
+    routes_indices = [] # sorry for the hack but classes are absolutely retarded to serialize using flask.jsonify
+    routes_payouts = []
+    routes_ctNodeId = []
+    routes_sendTime = []
 
     # ct state
     ctChannelBalances = [] # amounts which the ct node funded towards that channel
     ctChannelRewarded = [] # amount which the node already earned from the respective ctChannelStake,
                            # has to be <= corresponding entry in ctChannelStake
+
     def __init__(self, cache, ctNodeId):
         """
         Constructor
@@ -118,6 +123,7 @@ class ctAgent:
             # then facilitate they payout to each node
             # but only as long as the edge is valid (new earnings + existing earnings <= counter party stake)
             deadEnd = -1
+            nodePayouts = []
             if len(pathIndices) == self.hops + 1:
                 for hop in range(1,self.hops + 1):
                     # in 3 hop route, 1st relayer gets 3, 2nd gets 2, 3rd gets 1 `payoutPerHop`
@@ -129,6 +135,7 @@ class ctAgent:
                         print("WARNING: ",earned," + ",payout," > stake[", pathIndices[hop-1], "][", pathIndices[hop], "]=", counterPartyStake)
                         break # no further downstream nodes will earn anything
                     self.gameCache.earnings[pathIndices[hop]][pathIndices[hop-1]] += payout
+                    nodePayouts.append(payout)
                     #print("earnings now: ", self.gameCache.earnings[pathIndices[hop]][pathIndices[hop-1]])
                     #self.gameCache.updateStake(pathIndices[hop-1]+1, pathIndices[hop]+1, counterPartyStake - payout)
                     #print("earnings now: ", self.gameCache.earnings[pathIndices[hop]][pathIndices[hop-1]])
@@ -141,7 +148,10 @@ class ctAgent:
             #       switch to the heap-based approach as currently implemented in js
             #    print("Found dead end on path, removing node ", pathIndices[1])
             #    importanceAttempts[pathIndices[1]] = 0
-
+        self.routes_indices.append(pathIndices)
+        self.routes_payouts.append(nodePayouts)
+        self.routes_ctNodeId.append(self.ctNodeId)
+        self.routes_sendTime.append(datetime.datetime.utcnow())
         print("path: ", pathIndices)
         #print("earnings:")
         #hoprsim.printArray2d(self.gameCache.earnings, 1)
@@ -154,8 +164,6 @@ class ctAgent:
         print("next tick: ", self.nextTick)
         t = threading.Timer(self.ctTickDurationSeconds, self.tick)
         t.start()
-
-
 
 
 

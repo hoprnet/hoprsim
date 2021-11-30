@@ -124,6 +124,10 @@ def getCache():
         #"prettyStake": hoprsim.getPrettyMatrix(myCache.stake),
         #"prettyEarnings": hoprsim.getPrettyMatrix(myCache.earnings),
         "earnings": myCache.earnings,
+        "routes_indices": ct.routes_indices,
+        "routes_payouts": ct.routes_payouts,
+        "routes_ctNodeId": ct.routes_ctNodeId,
+        "routes_sendTime": ct.routes_sendTime,
         "nextTick": ct.nextTick.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
     }
     return jsonify(cache)

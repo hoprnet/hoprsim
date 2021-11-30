@@ -57,7 +57,11 @@ function loadData() {
       var earnings = gameCache.earnings;
       var members = gameCache.members;
       var len = stake.length;
-  
+ 
+      var routes_indices = gameCache.routes_indices
+      var routes_sendTime = gameCache.routes_sendTime
+      console.log("PATH INDICES: ", routes_indices);
+
       nextTickTime = new Date(nextTick)
       now = new Date(Date.now())
       deltaSeconds = Math.ceil(nextTickTime - now)
