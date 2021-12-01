@@ -3,10 +3,12 @@ function enterGame() {
  	document.getElementById('introText').style.display='none';
 	document.getElementById('playerTable').style.display='table';
 	document.getElementById('stakeTable').style.display='table';
+	document.getElementById('pathTable').style.display='table';
 }
 
 function addPlayer() {
 	document.getElementById('playerTable').style.display='none';
+  document.getElementById('pathTable').style.display='none';
   document.getElementById('addPlayerForm').style.display='table';
 }
 
@@ -60,6 +62,8 @@ function loadData() {
  
       var routes_indices = gameCache.routes_indices
       var routes_sendTime = gameCache.routes_sendTime
+      var routes_payouts = gameCache.routes_payouts
+      var routes_ctNodeIds = gameCache.routes_ctNodeId
       console.log("PATH INDICES: ", routes_indices);
 
       nextTickTime = new Date(nextTick)
@@ -223,6 +227,57 @@ function loadData() {
           newCell.setAttribute("data-from", i + 1);
           newCell.setAttribute("data-to", j + 1);
           newCell.setAttribute("id", "view-" + (i + 1) + "-" + (j + 1)); 
+        }
+      }
+
+      // render past routes table
+      if (routes_indices.length > 0) {
+
+        // render header
+        var numHops = routes_indices[0].length
+        //routes_sendTime
+        //routes_payouts
+        //routes_ctNodeIds
+
+        // render header of stake table
+        tablePath = document.getElementById("tablePath");
+        var newRow = tablePath.insertRow(0);
+        newRow.setAttribute("name","tableRow");
+
+        headerCell1 = document.createElement("TH");
+        headerCell1.innerText = "Time";
+        newRow.appendChild(headerCell1);
+
+        headerCell2 = document.createElement("TH");
+        headerCell2.innerText = "Traveller";
+        newRow.appendChild(headerCell2);
+
+
+        for (var c = 1; c < numHops; c++) {
+          headerCell = document.createElement("TH");
+          headerCell.innerText = "Hop " + (c);
+          newRow.appendChild(headerCell);
+        }
+
+        // render body
+        for (var c = 0; c < routes_indices.length; c++) {
+          var newRow = tablePath.insertRow(tablePath.rows.length);
+          
+          var cell = document.createElement("TD");
+          cell.innerText = routes_sendTime[c];
+          newRow.appendChild(cell);
+          newRow.setAttribute("name","tableRow");
+
+          cell = document.createElement("TD");
+          cell.innerText = routes_ctNodeIds[c];
+          newRow.appendChild(cell);
+
+          // start at index 1 because first entry is CT node
+          for (var r = 1; r < routes_indices[c].length; r++) {
+            cell = document.createElement("TD");
+            cell.innerText = routes_indices[c][r];
+            newRow.appendChild(cell);
+          }
         }
       }
     });
